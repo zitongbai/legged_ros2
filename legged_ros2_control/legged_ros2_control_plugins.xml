@@ -1,0 +1,5 @@
+<library path="mujoco_system_interface">
+  <class name="legged_ros2_control/MujocoSystemInterface" type="legged::MujocoSystemInterface" base_class_type="legged::LeggedSystemInterface">
+    <description>mujoco_system_interface</description>
+  </class>
+</library>
