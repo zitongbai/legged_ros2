@@ -27,16 +27,26 @@ struct MjExtraJointData
   int mj_vel_adr;  // Mujoco velocity address
 };
 
+class HARDWARE_INTERFACE_PUBLIC MujocoBaseSystemInterface : public LeggedSystemInterface
+{
+public:
+  RCLCPP_SHARED_PTR_DEFINITIONS(MujocoBaseSystemInterface)
+  RCLCPP_UNIQUE_PTR_DEFINITIONS(MujocoBaseSystemInterface)
 
-class HARDWARE_INTERFACE_PUBLIC MujocoSystemInterface : public LeggedSystemInterface
+  virtual void init_sim(
+    mjModel *mujoco_model, mjData *mujoco_data
+  ) = 0;
+};
+
+class HARDWARE_INTERFACE_PUBLIC MujocoSystemInterface : public MujocoBaseSystemInterface
 {
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(MujocoSystemInterface)
   RCLCPP_UNIQUE_PTR_DEFINITIONS(MujocoSystemInterface)
 
-  virtual void init_sim(
+  void init_sim(
     mjModel *mujoco_model, mjData *mujoco_data
-  );
+  ) override;
 
   CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
 

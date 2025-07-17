@@ -27,8 +27,8 @@ void MujocoRos2Control::import_components_(std::vector<hardware_interface::Hardw
 {
   // Create the system interface loader
   try{
-    system_interface_loader_.reset(new pluginlib::ClassLoader<MujocoSystemInterface>(
-      "legged_ros2_control", "legged::LeggedSystemInterface"));
+    system_interface_loader_.reset(new pluginlib::ClassLoader<MujocoBaseSystemInterface>(
+      "legged_ros2_control", "legged::MujocoBaseSystemInterface"));
   }catch (const pluginlib::PluginlibException & ex) {
     RCLCPP_ERROR_STREAM(logger_, "Failed to create hardware interface loader:  " << ex.what());
     return;
@@ -37,9 +37,9 @@ void MujocoRos2Control::import_components_(std::vector<hardware_interface::Hardw
   // Import components according to the hardware info
   for(const auto & hw_info: hardware_info){
     std::string hw_class_type = hw_info.hardware_class_type;
-    MujocoSystemInterface::UniquePtr system_interface;
+    MujocoBaseSystemInterface::UniquePtr system_interface;
     try{
-      system_interface = MujocoSystemInterface::UniquePtr(
+      system_interface = MujocoBaseSystemInterface::UniquePtr(
         system_interface_loader_->createUnmanagedInstance(hw_class_type));
     }catch (const pluginlib::PluginlibException & ex) {
       RCLCPP_ERROR_STREAM(logger_, "Failed to create system interface for " << hw_class_type << ": " << ex.what());

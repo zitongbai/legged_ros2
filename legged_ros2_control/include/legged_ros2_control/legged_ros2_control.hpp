@@ -34,6 +34,8 @@ public:
 
   virtual void update(const rclcpp::Time &time, const rclcpp::Duration &period);
 
+  int get_update_rate() const { return update_rate_; }
+
 protected:
   std::string urdf_string_;
   std::string get_robot_description_();
@@ -46,6 +48,7 @@ protected:
 
   std::shared_ptr<pluginlib::ClassLoader<LeggedSystemInterface>> system_interface_loader_;
 
+  int update_rate_;
   std::shared_ptr<controller_manager::ControllerManager> controller_manager_;
   rclcpp::Executor::SharedPtr cm_executor_;
   std::thread cm_thread_;

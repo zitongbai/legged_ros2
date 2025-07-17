@@ -29,7 +29,7 @@ protected:
   void import_components_(std::vector<hardware_interface::HardwareInfo> &hardware_info, 
                         std::unique_ptr<hardware_interface::ResourceManager> &resource_manager) override;
 
-  std::shared_ptr<pluginlib::ClassLoader<MujocoSystemInterface>> system_interface_loader_;
+  std::shared_ptr<pluginlib::ClassLoader<MujocoBaseSystemInterface>> system_interface_loader_;
 
 
   mjModel *mj_model_;

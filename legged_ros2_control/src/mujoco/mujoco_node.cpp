@@ -52,6 +52,11 @@ int main(int argc, const char **argv)
   legged::MujocoRos2Control mujoco_control(node, mujoco_model, mujoco_data);
 
   mujoco_control.init();  // thread of controller manager and its spin is started here
+  // TODO: sim time clock publisher, maybe in a separate thread
+
+  mujoco_model->opt.timestep = 1.0 / mujoco_control.get_update_rate();
+  RCLCPP_INFO_STREAM(
+    node->get_logger(), "Mujoco model timestep set to: " << mujoco_model->opt.timestep << " seconds");
 
   RCLCPP_INFO_STREAM(
     node->get_logger(), "Mujoco ros2 controller has been successfully initialized !");

@@ -43,6 +43,7 @@ struct JointData{
 };
 
 struct ImuData{
+  std::string name;
   double quat_[4];  // quaternion, x, y, z, w
   double ang_vel_[3]; // angular velocity, x, y, z
   double lin_acc_[3]; // linear acceleration, x, y, z
@@ -69,7 +70,7 @@ protected:
 
   // Data
   std::vector<JointData> joint_data_;
-  ImuData imu_data_;
+  std::vector<ImuData> imu_data_;
 
   virtual bool build_joint_data_() = 0;
 

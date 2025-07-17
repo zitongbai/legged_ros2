@@ -62,7 +62,7 @@ ament_target_dependencies(
 target_compile_definitions(legged_system_interface PRIVATE "LEGGED_ROS2_CONTROL_BUILDING_LIBRARY")
 
 
-add_library(mujoco_system_interface src/mujoco/mujoco_system_interface.cpp)
+add_library(mujoco_system_interface SHARED src/mujoco/mujoco_system_interface.cpp)
 target_compile_features(mujoco_system_interface PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 target_include_directories(mujoco_system_interface PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -118,6 +118,10 @@ install(
 install(
   TARGETS mujoco_node
   DESTINATION lib/${PROJECT_NAME}
+)
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)

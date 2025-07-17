@@ -48,16 +48,19 @@ return_type MujocoSystemInterface::read(const rclcpp::Time & /*time*/, const rcl
         <gyro name="imu_gyro" site="imu" />
         <accelerometer name="imu_acc" site="imu" />
    */
-  imu_data_.quat_[0] = mj_data_->sensordata[1]; // x
-  imu_data_.quat_[1] = mj_data_->sensordata[2]; // y
-  imu_data_.quat_[2] = mj_data_->sensordata[3]; // z
-  imu_data_.quat_[3] = mj_data_->sensordata[0]; // w
-  imu_data_.ang_vel_[0] = mj_data_->sensordata[4]; // angular velocity x
-  imu_data_.ang_vel_[1] = mj_data_->sensordata[5]; // angular velocity y
-  imu_data_.ang_vel_[2] = mj_data_->sensordata[6]; // angular velocity z
-  imu_data_.lin_acc_[0] = mj_data_->sensordata[7]; // linear acceleration x
-  imu_data_.lin_acc_[1] = mj_data_->sensordata[8]; // linear acceleration y
-  imu_data_.lin_acc_[2] = mj_data_->sensordata[9]; // linear acceleration z
+  for(size_t i=0; i<imu_data_.size(); i++){
+    imu_data_[i].quat_[0] = mj_data_->sensordata[10*i + 1]; // x
+    imu_data_[i].quat_[1] = mj_data_->sensordata[10*i + 2]; // y
+    imu_data_[i].quat_[2] = mj_data_->sensordata[10*i + 3]; // z
+    imu_data_[i].quat_[3] = mj_data_->sensordata[10*i + 0]; // w
+    imu_data_[i].ang_vel_[0] = mj_data_->sensordata[10*i + 4]; // angular velocity x
+    imu_data_[i].ang_vel_[1] = mj_data_->sensordata[10*i + 5]; // angular velocity y
+    imu_data_[i].ang_vel_[2] = mj_data_->sensordata[10*i + 6]; // angular velocity z
+    imu_data_[i].lin_acc_[0] = mj_data_->sensordata[10*i + 7]; // linear acceleration x
+    imu_data_[i].lin_acc_[1] = mj_data_->sensordata[10*i + 8]; // linear acceleration y
+    imu_data_[i].lin_acc_[2] = mj_data_->sensordata[10*i + 9]; // linear acceleration z
+  }
+
 
 
   // Set feedforward and velocity cmd to zero to avoid for safety when not controller setCommand
@@ -125,4 +128,4 @@ bool MujocoSystemInterface::build_joint_data_(){
 
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(
-  legged::MujocoSystemInterface, legged::LeggedSystemInterface)
+  legged::MujocoSystemInterface, legged::MujocoBaseSystemInterface)

@@ -141,8 +141,8 @@ void LeggedRos2Control::init()
     RCLCPP_ERROR_STREAM(logger_, "controller manager doesn't have an update_rate parameter");
     return;
   }
-  int update_rate = controller_manager_->get_parameter("update_rate").as_int();
-  RCLCPP_INFO(logger_, "Controller manager update rate: %d Hz", update_rate);
+  update_rate_ = controller_manager_->get_parameter("update_rate").as_int();
+  RCLCPP_INFO(logger_, "Controller manager update rate: %d Hz", update_rate_);
 
   const int thread_priority = controller_manager_->get_parameter_or<int>("thread_priority", 50);
   RCLCPP_INFO(
@@ -171,11 +171,13 @@ void LeggedRos2Control::init()
           "for details on how to enable realtime scheduling.");
       } // end if has_realtime
 
-      const auto period = std::chrono::nanoseconds(1'000'000'000 / update_rate);
+      const auto period = std::chrono::nanoseconds(1'000'000'000 / update_rate_);
       const auto cm_now = std::chrono::nanoseconds(this->controller_manager_->now().nanoseconds());
       std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> next_iteration_time{cm_now};
 
       rclcpp::Time previous_time = this->controller_manager_->now();
+      rclcpp::Duration period_duration = rclcpp::Duration::from_nanoseconds(period.count());
+      rclcpp::Duration period_error_threshold = rclcpp::Duration::from_nanoseconds(0.1 * period.count()); // 10% threshold
 
       while(rclcpp::ok()){
         // calculate measured period
@@ -188,6 +190,14 @@ void LeggedRos2Control::init()
 
         // wait until we hit the end of the period
         next_iteration_time += period;
+
+        if(measured_period - period_duration > period_error_threshold){
+          RCLCPP_WARN(
+            logger_,
+            "Measured period (%f s) is larger than expected period (%f s). "
+            "This can lead to performance issues.",
+            measured_period.seconds(), period_duration.seconds());
+        }
 
         if(use_sim_time){ // TODO: check sim time
           this->controller_manager_->get_clock()->sleep_until(current_time + period);

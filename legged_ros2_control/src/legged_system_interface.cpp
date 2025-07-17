@@ -34,9 +34,13 @@ CallbackReturn LeggedSystemInterface::on_init(const hardware_interface::Hardware
 
   // Resize vectors based on the number of joints
   joint_data_.resize(info.joints.size());
-
   for (size_t i = 0; i < info.joints.size(); ++i) {
     joint_data_[i].name = info.joints[i].name;
+  }
+
+  imu_data_.resize(info.sensors.size());
+  for (size_t i=0; i<info.sensors.size(); i++){
+    imu_data_[i].name = info.sensors[i].name;
   }
 
   if(!build_joint_data_()){
@@ -60,17 +64,18 @@ std::vector<hardware_interface::StateInterface> LeggedSystemInterface::export_st
   }
   
   // IMU interface
-  std::string imu_name = info_.sensors[0].name; // Assuming the first sensor is the IMU
-  state_interfaces.emplace_back(imu_name, "orientation.x", &imu_data_.quat_[0]);
-  state_interfaces.emplace_back(imu_name, "orientation.y", &imu_data_.quat_[1]);
-  state_interfaces.emplace_back(imu_name, "orientation.z", &imu_data_.quat_[2]);
-  state_interfaces.emplace_back(imu_name, "orientation.w", &imu_data_.quat_[3]);
-  state_interfaces.emplace_back(imu_name, "angular_velocity.x", &imu_data_.ang_vel_[0]);
-  state_interfaces.emplace_back(imu_name, "angular_velocity.y", &imu_data_.ang_vel_[1]);
-  state_interfaces.emplace_back(imu_name, "angular_velocity.z", &imu_data_.ang_vel_[2]);
-  state_interfaces.emplace_back(imu_name, "linear_acceleration.x", &imu_data_.lin_acc_[0]);
-  state_interfaces.emplace_back(imu_name, "linear_acceleration.y", &imu_data_.lin_acc_[1]);
-  state_interfaces.emplace_back(imu_name, "linear_acceleration.z", &imu_data_.lin_acc_[2]);
+  for(size_t i=0; i<imu_data_.size(); i++){
+    state_interfaces.emplace_back(imu_data_[i].name, "orientation.x", &imu_data_[i].quat_[0]);
+    state_interfaces.emplace_back(imu_data_[i].name, "orientation.y", &imu_data_[i].quat_[1]);
+    state_interfaces.emplace_back(imu_data_[i].name, "orientation.z", &imu_data_[i].quat_[2]);
+    state_interfaces.emplace_back(imu_data_[i].name, "orientation.w", &imu_data_[i].quat_[3]);
+    state_interfaces.emplace_back(imu_data_[i].name, "angular_velocity.x", &imu_data_[i].ang_vel_[0]);
+    state_interfaces.emplace_back(imu_data_[i].name, "angular_velocity.y", &imu_data_[i].ang_vel_[1]);
+    state_interfaces.emplace_back(imu_data_[i].name, "angular_velocity.z", &imu_data_[i].ang_vel_[2]);
+    state_interfaces.emplace_back(imu_data_[i].name, "linear_acceleration.x", &imu_data_[i].lin_acc_[0]);
+    state_interfaces.emplace_back(imu_data_[i].name, "linear_acceleration.y", &imu_data_[i].lin_acc_[1]);
+    state_interfaces.emplace_back(imu_data_[i].name, "linear_acceleration.z", &imu_data_[i].lin_acc_[2]);
+  }
 
   return state_interfaces;
 }
