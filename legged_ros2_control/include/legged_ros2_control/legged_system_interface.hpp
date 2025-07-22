@@ -32,6 +32,14 @@
 
 using hardware_interface::return_type;
 
+namespace hardware_interface{
+/// Constant defining Kp interface
+constexpr char HW_IF_KP[] = "kp";
+/// Constant defining Kd interface
+constexpr char HW_IF_KD[] = "kd";
+}
+
+
 namespace legged
 {
 
@@ -40,6 +48,7 @@ struct JointData{
   double pos_, vel_, tau_;
   double pos_cmd_, vel_cmd_, ff_cmd_;
   double kp_, kd_;
+  double tau_range_[2]; // min, max torque range
 };
 
 struct ImuData{

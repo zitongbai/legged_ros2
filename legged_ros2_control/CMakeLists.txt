@@ -15,6 +15,7 @@ find_package(rclcpp_lifecycle REQUIRED)
 find_package(controller_manager REQUIRED)
 find_package(urdf REQUIRED)
 find_package(glfw3 REQUIRED)
+find_package(rosgraph_msgs REQUIRED)
 
 # Try to find mujoco
 find_package(mujoco QUIET)
@@ -42,6 +43,7 @@ set(THIS_PACKAGE_DEPENDS
   controller_manager
   urdf
   glfw3
+  rosgraph_msgs
 )
 
 add_library(legged_system_interface src/legged_system_interface.cpp)

@@ -16,6 +16,23 @@ def print_ros2_control_config(urdf_path):
     tree = ET.parse(urdf_path)
     root = tree.getroot()
     joints = root.findall('joint')
+
+    print("All revolute joints in URDF:")
+    for joint in joints:
+        name = joint.attrib.get('name')
+        if not name:
+            print("Joint without name found")
+            continue
+        
+        type_name = joint.attrib.get('type', 'unknown')
+        if type_name != "revolute":
+            continue
+        
+        print("-", name)
+
+    print("-"*80)
+    print("ROS2 control config for revolute joints:")
+
     joint_cnt = 0
     for joint in joints:
         name = joint.attrib.get('name')
@@ -70,7 +87,7 @@ def print_ros2_control_config(urdf_path):
 
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser(description="Print joint names from a URDF file.")
+  parser = argparse.ArgumentParser(description="Print ros2 control info from a URDF file.")
   parser.add_argument("urdf_file", nargs='?', default="../urdf/g1_29dof_lock_waist_rev_1_0.urdf", help="Path to the URDF file")
   args = parser.parse_args()
   print_ros2_control_config(args.urdf_file)

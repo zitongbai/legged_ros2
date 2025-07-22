@@ -1,0 +1,16 @@
+<library path="legged_ros2_controller">
+  <class name="legged_ros2_controller/LeggedController"
+         type="legged::LeggedController"
+         base_class_type="controller_interface::ControllerInterface">
+    <description>
+      This controller manages legged robot control.
+    </description>
+  </class>
+  <class name="legged_ros2_controller/SeparateJointController"
+         type="legged::SeparateJointController"
+         base_class_type="controller_interface::ControllerInterface">
+    <description>
+      This controller manages separate joint control for legged robots.
+    </description>
+  </class>
+</library>

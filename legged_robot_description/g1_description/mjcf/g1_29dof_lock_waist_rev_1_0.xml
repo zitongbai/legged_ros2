@@ -272,6 +272,25 @@
     <accelerometer name="imu-pelvis-linear-acceleration" site="imu_in_pelvis" noise="1e-2" cutoff="157"/>
   </sensor>
 
+  <keyframe>
+    <key name="home" 
+    qpos="
+      0 0 1.8 
+      1 0 0 0 
+      0 0 0 0 0 0
+      0 0 0 0 0 0
+      0 
+      0 0 0 0 0 0 0
+      0 0 0 0 0 0 0
+    "
+    ctrl="
+      0 0 0 0 0 0
+      0 0 0 0 0 0
+      0 
+      0 0 0 0 0 0 0
+      0 0 0 0 0 0 0
+    "/>
+  </keyframe>
 
   <!-- setup scene -->
   <statistic center="1.0 0.7 1.0" extent="0.8"/>

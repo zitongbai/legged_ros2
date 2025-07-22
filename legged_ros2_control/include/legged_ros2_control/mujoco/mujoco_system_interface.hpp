@@ -25,20 +25,21 @@ struct MjExtraJointData
 {
   int mj_pos_adr;  // Mujoco position address
   int mj_vel_adr;  // Mujoco velocity address
+  int mj_ctrl_adr; // Mujoco control address
 };
 
-class HARDWARE_INTERFACE_PUBLIC MujocoBaseSystemInterface : public LeggedSystemInterface
+class HARDWARE_INTERFACE_PUBLIC MujocoSystemInterfaceBase : public LeggedSystemInterface
 {
 public:
-  RCLCPP_SHARED_PTR_DEFINITIONS(MujocoBaseSystemInterface)
-  RCLCPP_UNIQUE_PTR_DEFINITIONS(MujocoBaseSystemInterface)
+  RCLCPP_SHARED_PTR_DEFINITIONS(MujocoSystemInterfaceBase)
+  RCLCPP_UNIQUE_PTR_DEFINITIONS(MujocoSystemInterfaceBase)
 
   virtual void init_sim(
     mjModel *mujoco_model, mjData *mujoco_data
   ) = 0;
 };
 
-class HARDWARE_INTERFACE_PUBLIC MujocoSystemInterface : public MujocoBaseSystemInterface
+class HARDWARE_INTERFACE_PUBLIC MujocoSystemInterface : public MujocoSystemInterfaceBase
 {
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(MujocoSystemInterface)

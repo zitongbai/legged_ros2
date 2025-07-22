@@ -12,13 +12,6 @@
 #include "legged_ros2_control/legged_system_interface.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 
-namespace hardware_interface{
-/// Constant defining Kp interface
-constexpr char HW_IF_KP[] = "kp";
-/// Constant defining Kd interface
-constexpr char HW_IF_KD[] = "kd";
-}
-
 
 namespace legged
 {
