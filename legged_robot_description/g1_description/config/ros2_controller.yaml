@@ -11,7 +11,6 @@ controller_manager:
 
 separate_joint_controller:
   ros__parameters:
-    update_rate: 100  # Hz
 
     joint_names: 
       - left_hip_pitch_joint
