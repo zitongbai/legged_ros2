@@ -1,0 +1,62 @@
+legged_rl_controller:
+  imu_names: {
+    type: string_array,
+    default_value: ["imu-torso", "imu-pelvis"],
+    description: Imu used for RL observation.
+  }
+  joint_names: {
+    type: string_array,
+    default_value: [],
+    description: Joint names used for RL actions.
+  }
+  obs_names: {
+    type: string_array,
+    default_value: [],
+    description: Observation names used for RL.
+  }
+  obs_cfg:
+    __map_obs_names:
+      clip: {
+        type: double_array,
+        default_value: [],
+        description: Clip values for observation terms,
+        validation: {
+          unique<>: null,
+        }
+      }
+      scale: {
+        type: double,
+        default_value: 1.0,
+        description: Scale values for observation terms
+      }
+  
+  action_cfg:
+    __map_joint_names:
+      clip: {
+        type: double_array,
+        default_value: [],
+        description: Clip values for action terms,
+        validation: {
+          unique<>: null,
+        }
+      }
+      scale: {
+        type: double,
+        default_value: 1.0,
+        description: Scale values for action terms
+      }
+      kp: {
+        type: double, 
+        default_value: 0.0,
+        description: Proportional gain for joint position control
+      }
+      kd: {
+        type: double, 
+        default_value: 0.0,
+        description: Derivative gain for joint position control
+      }
+      default_pos: {
+        type: double,
+        default_value: 0.0,
+        description: Default position for joint position control
+      }

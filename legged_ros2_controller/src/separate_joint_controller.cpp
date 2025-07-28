@@ -19,6 +19,9 @@ controller_interface::CallbackReturn SeparateJointController::on_init(){
     return controller_interface::CallbackReturn::ERROR;
   }
 
+  joint_names_ = auto_declare<std::vector<std::string>>("joint_names", std::vector<std::string>());
+  imu_names_ = auto_declare<std::vector<std::string>>("imu_names", std::vector<std::string>());
+
   kp_ = auto_declare<std::vector<double>>("kp", std::vector<double>());
   kd_ = auto_declare<std::vector<double>>("kd", std::vector<double>());
 

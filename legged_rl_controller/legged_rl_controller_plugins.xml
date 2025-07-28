@@ -1,0 +1,9 @@
+<library path="legged_rl_controller">
+  <class name="legged_rl_controller/LeggedRLController"
+         type="legged::LeggedRLController"
+         base_class_type="controller_interface::ControllerInterface">
+    <description>
+      RL controller for legged robots.
+    </description>
+  </class>
+</library>

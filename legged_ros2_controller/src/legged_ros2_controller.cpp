@@ -24,14 +24,17 @@ using config_type = controller_interface::interface_configuration_type;
 namespace legged{
 
 controller_interface::CallbackReturn LeggedController::on_init(){
-  joint_names_ = auto_declare<std::vector<std::string>>("joint_names", std::vector<std::string>());
-  imu_names_ = auto_declare<std::vector<std::string>>("imu_names", std::vector<std::string>());
-
   return CallbackReturn::SUCCESS;
 }
 
 controller_interface::CallbackReturn LeggedController::on_configure(
       const rclcpp_lifecycle::State & /*previous_state*/) {
+  
+  if(joint_names_.empty() || imu_names_.empty()){
+    RCLCPP_ERROR(get_node()->get_logger(), "Joint names or IMU names are empty, please get them in on_init() method.");
+    return CallbackReturn::ERROR;
+  }
+
   joint_interface_ = std::make_unique<JointInterface>(joint_names_);
   for(const auto & imu: imu_names_){
     imu_interfaces_.emplace_back(std::make_unique<semantic_components::IMUSensor>(imu));

@@ -104,7 +104,7 @@ public:
     return command_interface_names_;
   }
 
-  std::vector<double> get_joint_positions() const {
+  std::vector<double> get_joint_position() const {
     std::vector<double> positions;
     positions.reserve(joint_num_);
     for(size_t i=0; i<joint_num_; i++){
