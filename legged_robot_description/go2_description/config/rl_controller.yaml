@@ -1,0 +1,153 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 200  # Hz
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    rl_controller:
+      type: legged_rl_controller/LeggedRLController
+
+rl_controller:
+  ros__parameters:
+    update_rate: 50 # Hz
+    imu_names:  # only use one imu for RL observation
+      - imu
+    # The following parameters are exported in legged lab, it is 
+    # not recommended to change them manually.
+    obs_names:
+      - base_ang_vel
+      - projected_gravity
+      - velocity_commands
+      - joint_pos
+      - joint_vel
+      - actions
+    obs_cfg:
+      base_ang_vel:
+        clip:
+        - 0.0
+        scale: 0.20000000298023224
+        history_length: 5
+      projected_gravity:
+        clip:
+        - 0.0
+        scale: 1.0
+        history_length: 5
+      velocity_commands:
+        clip:
+        - 0.0
+        scale: 1.0
+        history_length: 5
+      joint_pos:
+        clip:
+        - 0.0
+        scale: 1.0
+        history_length: 5
+      joint_vel:
+        clip:
+        - 0.0
+        scale: 0.05000000074505806
+        history_length: 5
+      actions:
+        clip:
+        - 0.0
+        scale: 1.0
+        history_length: 5
+    joint_names:
+      - FL_hip_joint
+      - FR_hip_joint
+      - RL_hip_joint
+      - RR_hip_joint
+      - FL_thigh_joint
+      - FR_thigh_joint
+      - RL_thigh_joint
+      - RR_thigh_joint
+      - FL_calf_joint
+      - FR_calf_joint
+      - RL_calf_joint
+      - RR_calf_joint
+    action_cfg:
+      FL_hip_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 25.0
+        kd: 0.5
+        default_pos: 0.10000000149011612
+      FR_hip_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 25.0
+        kd: 0.5
+        default_pos: -0.10000000149011612
+      RL_hip_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 25.0
+        kd: 0.5
+        default_pos: 0.10000000149011612
+      RR_hip_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 25.0
+        kd: 0.5
+        default_pos: -0.10000000149011612
+      FL_thigh_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 25.0
+        kd: 0.5
+        default_pos: 0.800000011920929
+      FR_thigh_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 25.0
+        kd: 0.5
+        default_pos: 0.800000011920929
+      RL_thigh_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 25.0
+        kd: 0.5
+        default_pos: 1.0
+      RR_thigh_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 25.0
+        kd: 0.5
+        default_pos: 1.0
+      FL_calf_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 25.0
+        kd: 0.5
+        default_pos: -1.5
+      FR_calf_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 25.0
+        kd: 0.5
+        default_pos: -1.5
+      RL_calf_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 25.0
+        kd: 0.5
+        default_pos: -1.5
+      RR_calf_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 25.0
+        kd: 0.5
+        default_pos: -1.5

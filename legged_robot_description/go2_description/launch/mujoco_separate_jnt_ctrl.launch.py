@@ -15,7 +15,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "description_package",
-            default_value="g1_description",
+            default_value="go2_description",
             description="Description package with robot URDF/xacro files. Usually the argument \
         is not set, it enables use of a custom description.",
         )
@@ -23,23 +23,15 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "description_file",
-            default_value="g1_29dof_lock_waist_rev_1_0.urdf.xacro",
+            default_value="robot.xacro",
             description="URDF/XACRO description file with the robot.",
         )
     )
     declared_arguments.append(
         DeclareLaunchArgument(
             "mjcf_file", 
-            default_value="g1_29dof_lock_waist_rev_1_0.xml",
+            default_value="scene.xml",
             description="MJCF file for the robot."
-        )
-    )
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            "rl_policy", 
-            default_value="policy.pt",
-            description="RL policy file. This file is exported by IsaacLab automatically \
-                        when playing the policy.",
         )
     )
     declared_arguments.append(
@@ -63,7 +55,6 @@ def generate_launch_description():
     description_package = LaunchConfiguration("description_package")
     description_file = LaunchConfiguration("description_file")
     mjcf_file = LaunchConfiguration("mjcf_file")
-    rl_policy = LaunchConfiguration("rl_policy")
     gui = LaunchConfiguration("gui")
     prefix = LaunchConfiguration("prefix")
 
@@ -73,11 +64,8 @@ def generate_launch_description():
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare(description_package), "urdf", description_file]
+                [FindPackageShare(description_package), "xacro", description_file]
             ),
-            " ", 
-            "prefix:=", 
-            prefix,
         ]
     )
     robot_description = {"robot_description": robot_description_content}
@@ -88,27 +76,29 @@ def generate_launch_description():
         )
     }
 
-    rl_policy_path = {
-        "rl_policy_path": PathJoinSubstitution(
-            [FindPackageShare(description_package), "config", "rl", rl_policy]
-        )
-    }
-
     robot_controllers = PathJoinSubstitution(
         [
             FindPackageShare(description_package),
             "config",
-            "rl_controller.yaml",
+            "ros2_controller.yaml",
         ]
     )
     rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare(description_package), "rviz2", "g1.rviz"]
+        [FindPackageShare(description_package), "rviz2", "go2.rviz"]
+    )
+
+    joint_cmd_publisher_node = Node(
+        package="joint_state_publisher_gui",
+        executable="joint_state_publisher_gui",
+        remappings=[
+            ("/joint_states", "/joint_cmd")
+        ]
     )
 
     control_node = Node(
         package="legged_ros2_control",
         executable="mujoco_node",
-        parameters=[robot_controllers, mjcf_file_path, rl_policy_path, robot_description],
+        parameters=[robot_controllers, mjcf_file_path, robot_description],
         remappings=[
             ("~/robot_description", "/robot_description"),
         ],
@@ -140,11 +130,7 @@ def generate_launch_description():
     robot_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["rl_controller", 
-                   "-c", 
-                   "/controller_manager", 
-                #    "--inactive"
-                ],
+        arguments=["separate_joint_controller", "-c", "/controller_manager"],
     )
 
     # Delay rviz start after `joint_state_broadcaster`
@@ -169,7 +155,8 @@ def generate_launch_description():
         robot_state_pub_node,
         robot_controller_spawner,
         delay_rviz_after_joint_state_broadcaster_spawner,
-        delay_joint_state_broadcaster_after_robot_controller_spawner, 
+        delay_joint_state_broadcaster_after_robot_controller_spawner,
+        joint_cmd_publisher_node, 
     ]
 
     return LaunchDescription(declared_arguments + nodes)

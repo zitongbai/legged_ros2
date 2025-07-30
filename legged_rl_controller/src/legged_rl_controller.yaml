@@ -29,6 +29,11 @@ legged_rl_controller:
         default_value: 1.0,
         description: Scale values for observation terms
       }
+      history_length: {
+        type: int,
+        default_value: 0,
+        description: History length for observation terms
+      }
   
   action_cfg:
     __map_joint_names:

@@ -15,7 +15,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "description_package",
-            default_value="g1_description",
+            default_value="go2_description",
             description="Description package with robot URDF/xacro files. Usually the argument \
         is not set, it enables use of a custom description.",
         )
@@ -23,14 +23,14 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "description_file",
-            default_value="g1_29dof_lock_waist_rev_1_0.urdf.xacro",
+            default_value="robot.xacro",
             description="URDF/XACRO description file with the robot.",
         )
     )
     declared_arguments.append(
         DeclareLaunchArgument(
             "mjcf_file", 
-            default_value="g1_29dof_lock_waist_rev_1_0.xml",
+            default_value="scene.xml",
             description="MJCF file for the robot."
         )
     )
@@ -73,11 +73,8 @@ def generate_launch_description():
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare(description_package), "urdf", description_file]
+                [FindPackageShare(description_package), "xacro", description_file]
             ),
-            " ", 
-            "prefix:=", 
-            prefix,
         ]
     )
     robot_description = {"robot_description": robot_description_content}
@@ -102,7 +99,7 @@ def generate_launch_description():
         ]
     )
     rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare(description_package), "rviz2", "g1.rviz"]
+        [FindPackageShare(description_package), "rviz2", "go2.rviz"]
     )
 
     control_node = Node(

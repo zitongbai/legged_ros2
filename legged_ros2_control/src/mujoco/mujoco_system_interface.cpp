@@ -143,8 +143,16 @@ bool MujocoSystemInterface::build_joint_data_(){
 
     mj_extra_joint_data_[i].mj_ctrl_adr = mj_ctrl_id;
 
-    joint_data_[i].tau_range_[0] = mj_model_->jnt_actfrcrange[2 * mj_jnt_id + 0];
-    joint_data_[i].tau_range_[1] = mj_model_->jnt_actfrcrange[2 * mj_jnt_id + 1];
+    if (mj_model_->jnt_actfrclimited[mj_jnt_id]){
+      joint_data_[i].tau_range_[0] = mj_model_->jnt_actfrcrange[2 * mj_jnt_id + 0];
+      joint_data_[i].tau_range_[1] = mj_model_->jnt_actfrcrange[2 * mj_jnt_id + 1];
+    } else if (mj_model_->actuator_ctrllimited[mj_ctrl_id]) {
+      joint_data_[i].tau_range_[0] = mj_model_->actuator_ctrlrange[2 * mj_ctrl_id + 0];
+      joint_data_[i].tau_range_[1] = mj_model_->actuator_ctrlrange[2 * mj_ctrl_id + 1];
+    } else {
+      joint_data_[i].tau_range_[0] = -std::numeric_limits<double>::infinity();
+      joint_data_[i].tau_range_[1] = std::numeric_limits<double>::infinity();
+    }
 
     // debug print:
     RCLCPP_INFO_STREAM(

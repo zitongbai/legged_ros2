@@ -29,11 +29,13 @@ CallbackReturn LeggedSystemInterface::on_init(const hardware_interface::Hardware
   joint_data_.resize(info.joints.size());
   for (size_t i = 0; i < info.joints.size(); ++i) {
     joint_data_[i].name = info.joints[i].name;
+    RCLCPP_INFO(*logger_, "Joint %zu: %s", i, joint_data_[i].name.c_str());
   }
 
   imu_data_.resize(info.sensors.size());
   for (size_t i=0; i<info.sensors.size(); i++){
     imu_data_[i].name = info.sensors[i].name;
+    RCLCPP_INFO(*logger_, "IMU %zu: %s", i, imu_data_[i].name.c_str());
   }
 
   if(!build_joint_data_()){
