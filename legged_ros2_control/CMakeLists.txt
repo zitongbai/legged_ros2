@@ -35,6 +35,10 @@ else()
   Either build and install mujoco from source or set the MUJOCO_DIR environment variable to tell CMake where to find the binary install. ")
 endif()
 
+# Try to find Unitree SDK2 lib
+list(APPEND CMAKE_PREFIX_PATH "/opt/unitree_robotics/lib/cmake")
+find_package(unitree_sdk2 REQUIRED)
+
 set(THIS_PACKAGE_DEPENDS
   ament_cmake
   rclcpp
@@ -75,6 +79,15 @@ ament_target_dependencies(mujoco_system_interface ${THIS_PACKAGE_DEPENDS})
 target_link_libraries(mujoco_system_interface ${MUJOCO_LIB} legged_system_interface)
 
 
+add_library(unitree_system_interface SHARED src/robots/g1/g1_system_interface.cpp)
+target_compile_features(unitree_system_interface PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_include_directories(unitree_system_interface PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+ament_target_dependencies(unitree_system_interface ${THIS_PACKAGE_DEPENDS})
+target_link_libraries(unitree_system_interface unitree_sdk2 legged_system_interface)
+
 # Export hardware plugins
 pluginlib_export_plugin_description_file(legged_ros2_control legged_ros2_control_plugins.xml)
 
@@ -100,6 +113,21 @@ target_link_libraries(mujoco_node
 )
 
 
+add_executable(g1_node
+  src/robots/g1/g1_node.cpp
+  src/legged_ros2_control.cpp
+)
+target_compile_features(g1_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_include_directories(g1_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+ament_target_dependencies(g1_node ${THIS_PACKAGE_DEPENDS})
+target_link_libraries(g1_node
+  unitree_system_interface
+)
+
+
 install(
   DIRECTORY include/
   DESTINATION include
@@ -118,9 +146,20 @@ install(
   RUNTIME DESTINATION bin
 )
 install(
+  TARGETS unitree_system_interface
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+install(
   TARGETS mujoco_node
   DESTINATION lib/${PROJECT_NAME}
 )
+install(
+  TARGETS g1_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 install(
   DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}

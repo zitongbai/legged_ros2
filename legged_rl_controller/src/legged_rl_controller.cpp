@@ -44,6 +44,15 @@ controller_interface::CallbackReturn LeggedRLController::on_configure(const rclc
     return controller_interface::CallbackReturn::ERROR;
   }
 
+  // debug:
+  for(auto & s_if: joint_interface_->get_state_interface_names()){
+    RCLCPP_INFO(get_node()->get_logger(), "State Interface: %s", s_if.c_str());
+  }
+  for(auto & c_if: joint_interface_->get_command_interface_names()){
+    RCLCPP_INFO(get_node()->get_logger(), "Command Interface: %s", c_if.c_str());
+  } 
+
+
   // Command velocity subscriber
   cmd_vel_sub_ = get_node()->create_subscription<geometry_msgs::msg::Twist>(
     "cmd_vel", rclcpp::SystemDefaultsQoS(),

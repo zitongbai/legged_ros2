@@ -192,8 +192,10 @@ void LeggedRos2Control::init()
         next_iteration_time += period;
 
         if(measured_period - period_duration > period_error_threshold){
-          RCLCPP_WARN(
+          RCLCPP_WARN_THROTTLE(
             logger_,
+            *node_->get_clock(),
+            1000, // 1 second throttle
             "Measured period (%f s) is larger than expected period (%f s). "
             "This can lead to performance issues.",
             measured_period.seconds(), period_duration.seconds());
@@ -230,7 +232,7 @@ void LeggedRos2Control::import_components_(std::vector<hardware_interface::Hardw
   // Create the system interface loader
   try{
     system_interface_loader_.reset(new pluginlib::ClassLoader<LeggedSystemInterface>(
-      "legged_ros2_control", "hardware_interface::SystemInterface"));
+      "legged_ros2_control", "legged::LeggedSystemInterface"));
   }catch (const pluginlib::PluginlibException & ex) {
     RCLCPP_ERROR_STREAM(logger_, "Failed to create hardware interface loader:  " << ex.what());
     return;

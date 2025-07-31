@@ -29,7 +29,23 @@ CallbackReturn LeggedSystemInterface::on_init(const hardware_interface::Hardware
   joint_data_.resize(info.joints.size());
   for (size_t i = 0; i < info.joints.size(); ++i) {
     joint_data_[i].name = info.joints[i].name;
-    RCLCPP_INFO(*logger_, "Joint %zu: %s", i, joint_data_[i].name.c_str());
+    
+    auto it = std::find_if(
+      info.joints[i].command_interfaces.begin(),
+      info.joints[i].command_interfaces.end(),
+      [](const hardware_interface::InterfaceInfo & interface) {
+        return interface.name == hardware_interface::HW_IF_EFFORT;
+      });
+    if (it != info.joints[i].command_interfaces.end()) {
+      joint_data_[i].tau_range_[0] = std::stod(it->min);
+      joint_data_[i].tau_range_[1] = std::stod(it->max);
+    } else {
+      joint_data_[i].tau_range_[0] = -std::numeric_limits<double>::infinity();
+      joint_data_[i].tau_range_[1] = std::numeric_limits<double>::infinity();
+    }
+
+    RCLCPP_INFO(*logger_, "Joint %zu: %s with torque range [%f, %f]",
+                i, joint_data_[i].name.c_str(), joint_data_[i].tau_range_[0], joint_data_[i].tau_range_[1]);
   }
 
   imu_data_.resize(info.sensors.size());

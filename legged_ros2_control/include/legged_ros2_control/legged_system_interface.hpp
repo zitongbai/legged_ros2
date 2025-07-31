@@ -49,6 +49,7 @@ struct JointData{
   double pos_cmd_, vel_cmd_, ff_cmd_;
   double kp_, kd_;
   double tau_range_[2]; // min, max torque range
+  int adr; // index in sdk or sim
 };
 
 struct ImuData{

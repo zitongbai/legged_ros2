@@ -88,14 +88,14 @@ rl_controller:
         scale: 0.25
         kp: 100.0
         kd: 2.0
-        default_pos: -0.20000000298023224
+        default_pos: -0.10000000149011612
       right_hip_pitch_joint:
         clip:
         - 0.0
         scale: 0.25
         kp: 100.0
         kd: 2.0
-        default_pos: -0.20000000298023224
+        default_pos: -0.10000000149011612
       waist_yaw_joint:
         clip:
         - 0.0
@@ -123,14 +123,14 @@ rl_controller:
         scale: 0.25
         kp: 40.0
         kd: 10.0
-        default_pos: 0.3499999940395355
+        default_pos: 0.30000001192092896
       right_shoulder_pitch_joint:
         clip:
         - 0.0
         scale: 0.25
         kp: 40.0
         kd: 10.0
-        default_pos: 0.3499999940395355
+        default_pos: 0.30000001192092896
       left_hip_yaw_joint:
         clip:
         - 0.0
@@ -151,28 +151,28 @@ rl_controller:
         scale: 0.25
         kp: 40.0
         kd: 10.0
-        default_pos: 0.1599999964237213
+        default_pos: 0.25
       right_shoulder_roll_joint:
         clip:
         - 0.0
         scale: 0.25
         kp: 40.0
         kd: 10.0
-        default_pos: -0.1599999964237213
+        default_pos: -0.25
       left_knee_joint:
         clip:
         - 0.0
         scale: 0.25
         kp: 150.0
         kd: 4.0
-        default_pos: 0.41999998688697815
+        default_pos: 0.30000001192092896
       right_knee_joint:
         clip:
         - 0.0
         scale: 0.25
         kp: 150.0
         kd: 4.0
-        default_pos: 0.41999998688697815
+        default_pos: 0.30000001192092896
       left_shoulder_yaw_joint:
         clip:
         - 0.0
@@ -193,28 +193,28 @@ rl_controller:
         scale: 0.25
         kp: 40.0
         kd: 2.0
-        default_pos: -0.23000000417232513
+        default_pos: -0.20000000298023224
       right_ankle_pitch_joint:
         clip:
         - 0.0
         scale: 0.25
         kp: 40.0
         kd: 2.0
-        default_pos: -0.23000000417232513
+        default_pos: -0.20000000298023224
       left_elbow_joint:
         clip:
         - 0.0
         scale: 0.25
         kp: 40.0
         kd: 10.0
-        default_pos: 0.8700000047683716
+        default_pos: 0.9700000286102295
       right_elbow_joint:
         clip:
         - 0.0
         scale: 0.25
         kp: 40.0
         kd: 10.0
-        default_pos: 0.8700000047683716
+        default_pos: 0.9700000286102295
       left_ankle_roll_joint:
         clip:
         - 0.0
@@ -235,14 +235,14 @@ rl_controller:
         scale: 0.25
         kp: 40.0
         kd: 10.0
-        default_pos: 0.0
+        default_pos: 0.15000000596046448
       right_wrist_roll_joint:
         clip:
         - 0.0
         scale: 0.25
         kp: 40.0
         kd: 10.0
-        default_pos: 0.0
+        default_pos: -0.15000000596046448
       left_wrist_pitch_joint:
         clip:
         - 0.0

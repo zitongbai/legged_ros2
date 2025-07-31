@@ -3,3 +3,10 @@
     <description>mujoco_system_interface</description>
   </class>
 </library>
+
+<library path="unitree_system_interface">
+  <class name="legged_ros2_control/G1SystemInterface" type="legged::G1SystemInterface" base_class_type="legged::LeggedSystemInterface">
+    <description>ROS2 system interface for unitree G1</description>
+  </class>
+</library>
+
