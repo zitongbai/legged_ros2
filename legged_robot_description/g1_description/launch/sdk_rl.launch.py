@@ -29,9 +29,10 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument(
-            "mjcf_file", 
-            default_value="g1_29dof_lock_waist_rev_1_0.xml",
-            description="MJCF file for the robot."
+            "rl_policy", 
+            default_value="policy.pt",
+            description="RL policy file. This file is exported by IsaacLab automatically \
+                        when playing the policy.",
         )
     )
     declared_arguments.append(
@@ -54,7 +55,7 @@ def generate_launch_description():
     # Initialize Arguments
     description_package = LaunchConfiguration("description_package")
     description_file = LaunchConfiguration("description_file")
-    mjcf_file = LaunchConfiguration("mjcf_file")
+    rl_policy = LaunchConfiguration("rl_policy")
     gui = LaunchConfiguration("gui")
     prefix = LaunchConfiguration("prefix")
 
@@ -69,39 +70,39 @@ def generate_launch_description():
             " ", 
             "prefix:=", 
             prefix,
+            " ", 
+            "enable_sim:=",
+            "false",  # Set to false to disable simulation features
         ]
     )
     robot_description = {"robot_description": robot_description_content}
 
-    mjcf_file_path = {
-        "mujoco_model_path": PathJoinSubstitution(
-            [FindPackageShare(description_package), "mjcf", mjcf_file]
+    rl_policy_path = {
+        "rl_policy_path": PathJoinSubstitution(
+            [FindPackageShare(description_package), "config", "rl", rl_policy]
         )
     }
 
-    robot_controllers = PathJoinSubstitution(
+    controller_config = PathJoinSubstitution(
         [
             FindPackageShare(description_package),
             "config",
-            "separate_controller.yaml",
+            "rl_controller.yaml",
         ]
     )
     rviz_config_file = PathJoinSubstitution(
         [FindPackageShare(description_package), "rviz2", "g1.rviz"]
     )
 
-    joint_cmd_publisher_node = Node(
-        package="joint_state_publisher_gui",
-        executable="joint_state_publisher_gui",
-        remappings=[
-            ("/joint_states", "/joint_cmd")
-        ]
+    cmd_vel_publisher_node = Node(
+        package="rqt_robot_steering",
+        executable="rqt_robot_steering",
     )
 
     control_node = Node(
         package="legged_ros2_control",
-        executable="mujoco_node",
-        parameters=[robot_controllers, mjcf_file_path, robot_description],
+        executable="g1_node",
+        parameters=[controller_config, robot_description, rl_policy_path],
         remappings=[
             ("~/robot_description", "/robot_description"),
         ],
@@ -133,7 +134,7 @@ def generate_launch_description():
     robot_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["separate_joint_controller", "-c", "/controller_manager"],
+        arguments=["rl_controller", "-c", "/controller_manager"],
     )
 
     # Delay rviz start after `joint_state_broadcaster`
@@ -159,7 +160,7 @@ def generate_launch_description():
         robot_controller_spawner,
         delay_rviz_after_joint_state_broadcaster_spawner,
         delay_joint_state_broadcaster_after_robot_controller_spawner,
-        joint_cmd_publisher_node, 
+        cmd_vel_publisher_node, 
     ]
 
     return LaunchDescription(declared_arguments + nodes)

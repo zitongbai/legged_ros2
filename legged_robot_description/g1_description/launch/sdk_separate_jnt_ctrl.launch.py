@@ -61,6 +61,9 @@ def generate_launch_description():
             " ", 
             "prefix:=", 
             prefix,
+            " ", 
+            "enable_sim:=",
+            "false",  # Set to false to disable simulation features
         ]
     )
     robot_description = {"robot_description": robot_description_content}
@@ -69,7 +72,7 @@ def generate_launch_description():
         [
             FindPackageShare(description_package),
             "config",
-            "ros2_controller.yaml",
+            "separate_controller.yaml",
         ]
     )
     rviz_config_file = PathJoinSubstitution(

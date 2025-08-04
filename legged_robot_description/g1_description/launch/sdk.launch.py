@@ -29,9 +29,10 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument(
-            "mjcf_file", 
-            default_value="g1_29dof_lock_waist_rev_1_0.xml",
-            description="MJCF file for the robot."
+            "rl_policy", 
+            default_value="policy.pt",
+            description="RL policy file. This file is exported by IsaacLab automatically \
+                        when playing the policy.",
         )
     )
     declared_arguments.append(
@@ -54,7 +55,7 @@ def generate_launch_description():
     # Initialize Arguments
     description_package = LaunchConfiguration("description_package")
     description_file = LaunchConfiguration("description_file")
-    mjcf_file = LaunchConfiguration("mjcf_file")
+    rl_policy = LaunchConfiguration("rl_policy")
     gui = LaunchConfiguration("gui")
     prefix = LaunchConfiguration("prefix")
 
@@ -69,39 +70,34 @@ def generate_launch_description():
             " ", 
             "prefix:=", 
             prefix,
+            " ", 
+            "enable_sim:=",
+            "false", 
         ]
     )
     robot_description = {"robot_description": robot_description_content}
 
-    mjcf_file_path = {
-        "mujoco_model_path": PathJoinSubstitution(
-            [FindPackageShare(description_package), "mjcf", mjcf_file]
+    rl_policy_path = {
+        "rl_policy_path": PathJoinSubstitution(
+            [FindPackageShare(description_package), "config", "rl", rl_policy]
         )
     }
 
-    robot_controllers = PathJoinSubstitution(
+    controller_config = PathJoinSubstitution(
         [
             FindPackageShare(description_package),
             "config",
-            "separate_controller.yaml",
+            "ros2_controller.yaml",
         ]
     )
     rviz_config_file = PathJoinSubstitution(
         [FindPackageShare(description_package), "rviz2", "g1.rviz"]
     )
 
-    joint_cmd_publisher_node = Node(
-        package="joint_state_publisher_gui",
-        executable="joint_state_publisher_gui",
-        remappings=[
-            ("/joint_states", "/joint_cmd")
-        ]
-    )
-
     control_node = Node(
         package="legged_ros2_control",
-        executable="mujoco_node",
-        parameters=[robot_controllers, mjcf_file_path, robot_description],
+        executable="g1_node",
+        parameters=[controller_config, robot_description, rl_policy_path],
         remappings=[
             ("~/robot_description", "/robot_description"),
         ],
@@ -130,10 +126,21 @@ def generate_launch_description():
         arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
     )
 
-    robot_controller_spawner = Node(
+    static_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["separate_joint_controller", "-c", "/controller_manager"],
+        arguments=["static_controller", "-c", "/controller_manager", "--inactive"],
+    )
+
+    rl_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["rl_controller", "-c", "/controller_manager", "--inactive"],
+    )
+
+    rqt_controller_manager = Node(
+        package="rqt_controller_manager",
+        executable="rqt_controller_manager",
     )
 
     # Delay rviz start after `joint_state_broadcaster`
@@ -144,22 +151,21 @@ def generate_launch_description():
         )
     )
 
-    # Delay start of joint_state_broadcaster after `robot_controller`
-    # TODO(anyone): This is a workaround for flaky tests. Remove when fixed.
-    delay_joint_state_broadcaster_after_robot_controller_spawner = RegisterEventHandler(
+    # Delay start of joint_state_broadcaster and rl_controller after static_controller_spawner
+    delay_after_static_controller_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=robot_controller_spawner,
-            on_exit=[joint_state_broadcaster_spawner],
+            target_action=static_controller_spawner,
+            on_exit=[joint_state_broadcaster_spawner, rl_controller_spawner],
         )
     )
 
     nodes = [
         control_node,
         robot_state_pub_node,
-        robot_controller_spawner,
+        static_controller_spawner,
         delay_rviz_after_joint_state_broadcaster_spawner,
-        delay_joint_state_broadcaster_after_robot_controller_spawner,
-        joint_cmd_publisher_node, 
+        delay_after_static_controller_spawner,
+        rqt_controller_manager
     ]
 
     return LaunchDescription(declared_arguments + nodes)
