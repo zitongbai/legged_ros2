@@ -15,15 +15,27 @@ find_package(rclcpp_lifecycle REQUIRED)
 find_package(realtime_tools REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(legged_ros2_control REQUIRED)
+find_package(generate_parameter_library REQUIRED)
+
+
+generate_parameter_library(
+  static_controller_parameters
+  src/static_controller.yaml
+)
+
 
 add_library(legged_ros2_controller SHARED
   src/legged_ros2_controller.cpp
   src/separate_joint_controller.cpp
+  src/static_controller.cpp
 )
 target_compile_features(legged_ros2_controller PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 target_include_directories(legged_ros2_controller PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(legged_ros2_controller PUBLIC
+  static_controller_parameters
 )
 ament_target_dependencies(
   legged_ros2_controller PUBLIC
@@ -39,7 +51,7 @@ ament_target_dependencies(
 pluginlib_export_plugin_description_file(controller_interface legged_ros2_controller_plugins.xml)
 
 install(
-  TARGETS legged_ros2_controller
+  TARGETS legged_ros2_controller static_controller_parameters
   EXPORT export_legged_ros2_controller
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib

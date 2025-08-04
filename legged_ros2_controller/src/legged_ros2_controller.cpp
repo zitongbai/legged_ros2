@@ -30,9 +30,13 @@ controller_interface::CallbackReturn LeggedController::on_init(){
 controller_interface::CallbackReturn LeggedController::on_configure(
       const rclcpp_lifecycle::State & /*previous_state*/) {
   
-  if(joint_names_.empty() || imu_names_.empty()){
-    RCLCPP_ERROR(get_node()->get_logger(), "Joint names or IMU names are empty, please get them in on_init() method.");
-    return CallbackReturn::ERROR;
+  if(joint_names_.empty()){
+      RCLCPP_ERROR(get_node()->get_logger(), "Joint names are empty, please get them in on_init() method.");
+      return CallbackReturn::ERROR;
+  }
+
+  if(imu_names_.empty()){
+      RCLCPP_WARN(get_node()->get_logger(), "No IMU sensors configured.");
   }
 
   joint_interface_ = std::make_unique<JointInterface>(joint_names_);

@@ -13,4 +13,11 @@
       This controller manages separate joint control for legged robots.
     </description>
   </class>
+  <class name="legged_ros2_controller/StaticController"
+         type="legged::StaticController"
+         base_class_type="controller_interface::ControllerInterface">
+    <description>
+      This controller manages static control for legged robots.
+    </description>
+  </class>
 </library>

@@ -1,0 +1,30 @@
+static_controller:
+  joint_names: {
+    type: string_array,
+    default_value: [],
+    description: Joint names used for controller
+  }
+  joint_cfg:
+    __map_joint_names:
+      kp: {
+        type: double, 
+        default_value: 0.0,
+        description: Proportional gain for joint position control
+      }
+      kd: {
+        type: double, 
+        default_value: 0.0,
+        description: Derivative gain for joint position control
+      }
+      default_pos: {
+        type: double,
+        default_value: 0.0,
+        description: Default position for joint position control
+      }
+  traj_time: {
+    type: double,
+    default_value: 5.0,
+    description: Time of joint trajectory in seconds
+  }
+
+
