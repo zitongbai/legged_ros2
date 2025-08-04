@@ -1,4 +1,9 @@
 legged_rl_controller:
+  update_rate: {
+    type: int,
+    default_value: 50,
+    description: Update rate of the RL controller in Hz.
+  }
   imu_names: {
     type: string_array,
     default_value: ["imu-torso", "imu-pelvis"],
@@ -34,7 +39,6 @@ legged_rl_controller:
         default_value: 0,
         description: History length for observation terms
       }
-  
   action_cfg:
     __map_joint_names:
       clip: {

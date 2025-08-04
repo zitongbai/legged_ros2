@@ -88,10 +88,22 @@ controller_interface::CallbackReturn LeggedRLController::on_activate(const rclcp
   // Reset command velocity buffer
   cmd_vel_buffer_.reset();
 
+  // update observation for several times
+  RCLCPP_INFO(get_node()->get_logger(), "Updating observations for initial state...");
+  // assume all the terms have the same history length
+  // TODO
+  for (size_t i = 0; i < obs_terms_.front().history_length(); ++i) {
+    update_observations_();
+    // sleep for 1 / update_rate_ seconds
+    rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(1000.0 / params_.update_rate)));
+  }
+
+  RCLCPP_INFO(get_node()->get_logger(), "Legged RL Controller activated successfully.");
+
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::return_type LeggedRLController::update(const rclcpp::Time & /*time*/, const rclcpp::Duration & period){
+controller_interface::return_type LeggedRLController::update(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/){
   
   update_observations_();
 
