@@ -44,15 +44,6 @@ controller_interface::CallbackReturn LeggedRLController::on_configure(const rclc
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  // debug:
-  for(auto & s_if: joint_interface_->get_state_interface_names()){
-    RCLCPP_INFO(get_node()->get_logger(), "State Interface: %s", s_if.c_str());
-  }
-  for(auto & c_if: joint_interface_->get_command_interface_names()){
-    RCLCPP_INFO(get_node()->get_logger(), "Command Interface: %s", c_if.c_str());
-  } 
-
-
   // Command velocity subscriber
   cmd_vel_sub_ = get_node()->create_subscription<geometry_msgs::msg::Twist>(
     "cmd_vel", rclcpp::SystemDefaultsQoS(),
@@ -88,62 +79,86 @@ controller_interface::CallbackReturn LeggedRLController::on_activate(const rclcp
   // Reset command velocity buffer
   cmd_vel_buffer_.reset();
 
-  // update observation for several times
-  RCLCPP_INFO(get_node()->get_logger(), "Updating observations for initial state...");
-  // assume all the terms have the same history length
-  // TODO
-  for (size_t i = 0; i < obs_terms_.front().history_length(); ++i) {
-    update_observations_();
-    // sleep for 1 / update_rate_ seconds
-    rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(1000.0 / params_.update_rate)));
-  }
+  action_tensor_ = torch::zeros({static_cast<long>(joint_names_.size())}, torch::kFloat32).to(torch::kCPU);
+  target_joint_pos_.resize(joint_names_.size(), 0.0);
+  // start inference thread
+  inference_thread_ = std::thread([this]() {
+    using clock = std::chrono::high_resolution_clock;
+    const std::chrono::duration<double> desired_period(1.0 / this->params_.control_rate); // e.g., 1.0 / 50 Hz = 0.02 s
+    const auto dt = std::chrono::duration_cast<clock::duration>(desired_period);
+
+    const auto start_time = clock::now();
+    auto sleep_till = start_time + dt;
+
+    while (rclcpp::ok() 
+      && (this->get_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE || 
+          this->get_state().id() == lifecycle_msgs::msg::State::TRANSITION_STATE_ACTIVATING)
+    ) {
+      update_observations_();
+
+      torch::NoGradGuard no_grad; // Disable gradients for inference
+
+      action_tensor_ = policy_net_->forward({obs_tensor_}).toTensor().squeeze(0).to(torch::kFloat32);
+      
+      for (size_t i = 0; i < joint_names_.size(); ++i) {
+        // ref: isaaclab.envs.mdp.actions.joint_actions.py: JointAction.process_actions
+        // scale the raw action and add the default joint position
+        target_joint_pos_[i] = action_tensor_[i].item<double>() * action_term_.scale[i] + action_term_.default_joint_pos[i];
+        // clip the joint position
+        target_joint_pos_[i] = std::clamp(target_joint_pos_[i], action_term_.clip_min[i], action_term_.clip_max[i]);
+      }
+
+      // Sleep to maintain the loop rate
+      std::this_thread::sleep_until(sleep_till);
+      sleep_till += dt;
+    }
+  });
 
   RCLCPP_INFO(get_node()->get_logger(), "Legged RL Controller activated successfully.");
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::return_type LeggedRLController::update(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/){
-  
-  update_observations_();
+controller_interface::CallbackReturn LeggedRLController::on_deactivate(const rclcpp_lifecycle::State & previous_state){
 
-  torch::autograd::GradMode::set_enabled(false); // Disable gradients for inference
+  if (LeggedController::on_deactivate(previous_state) != controller_interface::CallbackReturn::SUCCESS) {
+    return controller_interface::CallbackReturn::ERROR;
+  }
 
-  // // for debug
-  // RCLCPP_INFO_THROTTLE(get_node()->get_logger(), *get_node()->get_clock(), 1000,
-  //     "Period: %f", period.seconds());
-  // RCLCPP_INFO_STREAM_THROTTLE(get_node()->get_logger(), *get_node()->get_clock(), 1000,
-  //   "Observation Tensor: " << obs_tensor_);
-  // RCLCPP_INFO_THROTTLE(get_node()->get_logger(), *get_node()->get_clock(), 1000,
-  //     "-------------------------------------");
-
-  // auto start_time = std::chrono::high_resolution_clock::now();
-
-  auto out = policy_net_->forward({obs_tensor_}).toTensor();
-  action_tensor_ = out.squeeze(0).to(torch::kFloat32).clone();
-
-  // auto end_time = std::chrono::high_resolution_clock::now();
-  // std::chrono::duration<double, std::milli> inference_time = end_time - start_time;
-  // RCLCPP_INFO(get_node()->get_logger(), "Inference time: %f ms", inference_time.count());
-
-  // // print action_tensor_
-  // std::cout << "Action Tensor: ";
-  // for (size_t i = 0; i < action_tensor_.size(0); ++i) {
-  //   std::cout << action_tensor_[i].item<float>() << " ";
-  // }
-  // std::cout << std::endl;
-
-  static thread_local std::vector<double> joint_pos_des(joint_names_.size(), 0.0);
-  for (size_t i = 0; i < joint_names_.size(); ++i) {
-    // ref: isaaclab.envs.mdp.actions.joint_actions.py: JointAction.process_actions
-    // scale the raw action and add the default joint position
-    joint_pos_des[i] = action_tensor_[i].item<double>() * action_term_.scale[i] + action_term_.default_joint_pos[i];
-    // clip the joint position
-    joint_pos_des[i] = std::clamp(joint_pos_des[i], action_term_.clip_min[i], action_term_.clip_max[i]);
+  // stop inference thread
+  if (inference_thread_.joinable()) {
+    inference_thread_.join();
   }
 
   joint_interface_->set_joint_command(
-    joint_pos_des, 
+    std::vector<double>(joint_names_.size(), 0.0), 
+    std::vector<double>(joint_names_.size(), 0.0), 
+    std::vector<double>(joint_names_.size(), 0.0), 
+    std::vector<double>(joint_names_.size(), 0.0), 
+    std::vector<double>(joint_names_.size(), 0.0)
+  );
+
+  return controller_interface::CallbackReturn::SUCCESS;
+}
+
+controller_interface::return_type LeggedRLController::update(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/){
+
+  // fall detection
+  if (detect_fall_()) {
+    RCLCPP_WARN(get_node()->get_logger(), "Robot is falling! Stopping the controller.");
+    // Set all joint commands to zero
+    joint_interface_->set_joint_command(
+      std::vector<double>(joint_names_.size(), 0.0),
+      std::vector<double>(joint_names_.size(), 0.0),
+      std::vector<double>(joint_names_.size(), 0.0),
+      std::vector<double>(joint_names_.size(), 0.0),
+      std::vector<double>(joint_names_.size(), 0.0)
+    );
+    return controller_interface::return_type::ERROR;
+  }
+
+  joint_interface_->set_joint_command(
+    target_joint_pos_, 
     std::vector<double>(joint_names_.size(), 0.0),
     std::vector<double>(joint_names_.size(), 0.0),
     action_term_.kp,
@@ -153,21 +168,33 @@ controller_interface::return_type LeggedRLController::update(const rclcpp::Time 
   return controller_interface::return_type::OK;
 }
 
+bool LeggedRLController::detect_fall_(){
+  // Check if the robot is falling based on IMU data
+  if (imu_interfaces_.empty()) {
+    RCLCPP_ERROR(get_node()->get_logger(), "No IMU interfaces found for fall detection.");
+    return false;
+  }
+
+  auto quat = imu_interfaces_[0]->get_orientation();  // (x,y,z,w)
+  double x = quat[0];
+  double y = quat[1];
+  double z = quat[2];
+  double w = quat[3];
+
+  double roll, pitch;
+  // Convert quaternion to Euler angles
+  roll = atan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y));
+  pitch = asin(2 * (w * y - z * x));
+
+  // Check if robot is falling
+  double roll_pitch_threshold = M_PI / 4; // 45 degrees
+  return fabs(roll) > roll_pitch_threshold || fabs(pitch) > roll_pitch_threshold;
+}
+
 void LeggedRLController::update_observations_(){
   size_t offset = 0;
   for (auto& term : obs_terms_) {
     const auto & obs = term.func(&term);
-
-    // std::cout << "Observation " << term.name << ": ";
-    // for (size_t i = 0; i < obs.size(0); ++i) {
-    //   std::cout << obs[i].item<float>() << " ";
-    // }
-    // std::cout << std::endl;
-
-    // if (torch::any(torch::isnan(obs)).item<bool>() || torch::any(torch::isinf(obs)).item<bool>()) {
-    //   RCLCPP_ERROR(get_node()->get_logger(), "Observation %s contains NaN or Inf values.", term.name.c_str());
-    //   throw std::runtime_error("Observation contains NaN or Inf values");
-    // }
 
     // Clip and scale the observation
     torch::Tensor obs_scaled = obs.clamp(term.clip[0], term.clip[1]) * term.scale;
@@ -176,12 +203,6 @@ void LeggedRLController::update_observations_(){
     obs_tensor_.slice(1, offset, offset + obs.size(0)) = obs_scaled.to(torch::kFloat32).unsqueeze(0);
     offset += obs.size(0);
   }
-  // // debug print obs_tensor_
-  // std::cout << "Observation Tensor: ";
-  // for (size_t i = 0; i < obs_tensor_.size(1); ++i) {
-  //   std::cout << obs_tensor_[0][i].item<float>() << " ";
-  // }
-  // std::cout << std::endl;
 }
 
 /*********************************************************************
@@ -264,7 +285,7 @@ controller_interface::CallbackReturn LeggedRLController::configure_parameters_()
       history_buffer
     });
 
-    RCLCPP_INFO(get_node()->get_logger(), "Observation term %s: size = %d, clip = [%.2f, %.2f], scale = %.2f, history_length = %d",
+    RCLCPP_DEBUG(get_node()->get_logger(), "Observation term %s: size = %d, clip = [%.2f, %.2f], scale = %.2f, history_length = %d",
                 obs_name.c_str(), obs_n, clip[0], clip[1], scale, history_length);
   }
 
@@ -293,7 +314,7 @@ controller_interface::CallbackReturn LeggedRLController::configure_parameters_()
       RCLCPP_ERROR(get_node()->get_logger(), "Joint name %s not found in action configuration", joint_name.c_str());
       return controller_interface::CallbackReturn::ERROR;
     }
-    RCLCPP_INFO(get_node()->get_logger(), 
+    RCLCPP_DEBUG(get_node()->get_logger(), 
       "Joint %s: clip_min = %.2f, clip_max = %.2f, scale = %.2f, kp = %.2f, kd = %.2f, default_pos = %.2f",
       joint_name.c_str(), action_term_.clip_min[i], action_term_.clip_max[i], 
       action_term_.scale[i], action_term_.kp[i], action_term_.kd[i], action_term_.default_joint_pos[i]);

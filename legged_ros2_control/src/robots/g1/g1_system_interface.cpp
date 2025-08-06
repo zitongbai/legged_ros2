@@ -10,8 +10,7 @@
  */
 
 
-#include "legged_ros2_control/robots/g1/g1_system_interface.hpp"
-
+#include "legged_ros2_control/robots/unitree/robots/g1/g1_system_interface.hpp"
 
 namespace legged {
 
@@ -68,6 +67,7 @@ CallbackReturn G1SystemInterface::on_configure(const rclcpp_lifecycle::State & /
   RCLCPP_INFO(*logger_, "G1SystemInterface configured with network interface: %s", network_interface_.c_str());
   RCLCPP_INFO(*logger_, "Trying to shutdown motion control-related service...");
 
+  // -------------------------------------- TODO --------------------------------------
   // try {
   //   // try to shutdown motion control-related service
   //   msc_ = std::make_shared<unitree::robot::b2::MotionSwitcherClient>();
@@ -90,42 +90,18 @@ CallbackReturn G1SystemInterface::on_configure(const rclcpp_lifecycle::State & /
 
   RCLCPP_INFO(*logger_, "Motion control-related service shutdown successfully");
 
-  // create publisher and subscriber for Unitree SDK2
-  // create publisher
-  lowcmd_publisher_.reset(new ChannelPublisher<LowCmd_>(HG_CMD_TOPIC));
-  lowcmd_publisher_->InitChannel();
-  // create subscriber
-  low_state_ = LowState_();
-  lowstate_subscriber_.reset(new ChannelSubscriber<LowState_>(HG_STATE_TOPIC));
-  lowstate_subscriber_->InitChannel(std::bind(&G1SystemInterface::lowstate_handler_, this, std::placeholders::_1), 1);
+  lowstate_subscriber_ = std::make_shared<g1::LowStateSubscriber>();
+  lowcmd_publisher_ = std::make_unique<g1::LowCmdPublisher>();
 
-  // Wait for connection to G1 robot, allow Ctrl+C to exit quickly
-  while(!connected_ && rclcpp::ok()){
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    RCLCPP_INFO(*logger_, "Waiting for connection to G1 robot...");
-  }
-  if (!rclcpp::ok()) {
-    RCLCPP_WARN(*logger_, "Shutdown requested, exiting configuration early.");
-    return CallbackReturn::ERROR;
-  }
+  RCLCPP_INFO(*logger_, "G1SystemInterface waiting for connection to G1 robot...");
+  lowstate_subscriber_->wait_for_connection();
+  RCLCPP_INFO(*logger_, "G1SystemInterface connected to G1 robot");
 
   RCLCPP_INFO(*logger_, "G1SystemInterface initialized successfully");
 
   return CallbackReturn::SUCCESS;
 }
 
-
-void G1SystemInterface::lowstate_handler_(const void * msg){
-  low_state_ = *(const LowState_ *)msg;
-  if (low_state_.crc() != Crc32Core((uint32_t *)&low_state_, (sizeof(LowState_) >> 2) - 1)) {
-    std::cout << "[ERROR] CRC Error, " << 
-      "received: " << low_state_.crc() <<
-      ", calculated: " << Crc32Core((uint32_t *)&low_state_, (sizeof(LowState_) >> 2) - 1) << std::endl;
-    return;
-  }
-  // TODO: make data thread safe
-  connected_ = true;
-}
 
 bool G1SystemInterface::build_joint_data_(){
   for(size_t i=0; i<joint_data_.size(); i++){
@@ -142,61 +118,74 @@ bool G1SystemInterface::build_joint_data_(){
 
 
 return_type G1SystemInterface::read(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/){
-  // check if low_state_ is available
-  // if (low_state_.crc() != Crc32Core((uint32_t *)&low_state_, (sizeof(LowState_) >> 2) - 1)) {
-  //   // RCLCPP_WARN(*logger_, "LowState CRC check failed, waiting for valid data...");
-  //   return return_type::OK;
-  // }
+
+  lowstate_subscriber_->update();
 
   // Read joint data
   for (size_t i=0; i < joint_data_.size(); ++i) {
-    joint_data_[i].pos_ = low_state_.motor_state()[joint_data_[i].adr].q();
-    joint_data_[i].vel_ = low_state_.motor_state()[joint_data_[i].adr].dq();
-    joint_data_[i].tau_ = low_state_.motor_state()[joint_data_[i].adr].tau_est();
+    joint_data_[i].pos_ = lowstate_subscriber_->msg_.motor_state()[joint_data_[i].adr].q();
+    joint_data_[i].vel_ = lowstate_subscriber_->msg_.motor_state()[joint_data_[i].adr].dq();
+    joint_data_[i].tau_ = lowstate_subscriber_->msg_.motor_state()[joint_data_[i].adr].tau_est();
   }
 
   // Read IMU data
   // Only use one IMU here
   // Unitree SDK2 quaternion: w x y z
   // ImuData quaternion: x y z w
-  imu_data_[0].quat_[0] = low_state_.imu_state().quaternion()[1]; // x
-  imu_data_[0].quat_[1] = low_state_.imu_state().quaternion()[2]; // y
-  imu_data_[0].quat_[2] = low_state_.imu_state().quaternion()[3]; // z
-  imu_data_[0].quat_[3] = low_state_.imu_state().quaternion()[0]; // w
-  imu_data_[0].ang_vel_[0] = low_state_.imu_state().gyroscope()[0]; // angular velocity x
-  imu_data_[0].ang_vel_[1] = low_state_.imu_state().gyroscope()[1]; // angular velocity y
-  imu_data_[0].ang_vel_[2] = low_state_.imu_state().gyroscope()[2]; // angular velocity z
-  imu_data_[0].lin_acc_[0] = low_state_.imu_state().accelerometer()[0]; // linear acceleration x
-  imu_data_[0].lin_acc_[1] = low_state_.imu_state().accelerometer()[1]; // linear acceleration y
-  imu_data_[0].lin_acc_[2] = low_state_.imu_state().accelerometer()[2]; // linear acceleration z
+  imu_data_[0].quat_[0] = lowstate_subscriber_->msg_.imu_state().quaternion()[1]; // x
+  imu_data_[0].quat_[1] = lowstate_subscriber_->msg_.imu_state().quaternion()[2]; // y
+  imu_data_[0].quat_[2] = lowstate_subscriber_->msg_.imu_state().quaternion()[3]; // z
+  imu_data_[0].quat_[3] = lowstate_subscriber_->msg_.imu_state().quaternion()[0]; // w
+  imu_data_[0].ang_vel_[0] = lowstate_subscriber_->msg_.imu_state().gyroscope()[0]; // angular velocity x
+  imu_data_[0].ang_vel_[1] = lowstate_subscriber_->msg_.imu_state().gyroscope()[1]; // angular velocity y
+  imu_data_[0].ang_vel_[2] = lowstate_subscriber_->msg_.imu_state().gyroscope()[2]; // angular velocity z
+  imu_data_[0].lin_acc_[0] = lowstate_subscriber_->msg_.imu_state().accelerometer()[0]; // linear acceleration x
+  imu_data_[0].lin_acc_[1] = lowstate_subscriber_->msg_.imu_state().accelerometer()[1]; // linear acceleration y
+  imu_data_[0].lin_acc_[2] = lowstate_subscriber_->msg_.imu_state().accelerometer()[2]; // linear acceleration z
 
-  if(mode_machine_ != low_state_.mode_machine()){
-    if (mode_machine_ == 0) std::cout << "G1 type: " << unsigned(low_state_.mode_machine()) << std::endl;
-    mode_machine_ = low_state_.mode_machine();
+  if(mode_machine_ != lowstate_subscriber_->msg_.mode_machine()){
+    if (mode_machine_ == 0) std::cout << "G1 type: " << unsigned(lowstate_subscriber_->msg_.mode_machine()) << std::endl;
+    mode_machine_ = lowstate_subscriber_->msg_.mode_machine();
   }
 
   return return_type::OK;
 }
 
 
-return_type G1SystemInterface::write(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/){
+return_type G1SystemInterface::write(const rclcpp::Time & /*time*/, const rclcpp::Duration & period){
 
   // Prepare low_cmd_
-  low_cmd_ = LowCmd_();
-  low_cmd_.mode_pr() = static_cast<uint8_t>(Mode::PR);
-  low_cmd_.mode_machine() = mode_machine_;
+
+  lowcmd_publisher_->msg_.mode_machine() = mode_machine_;
 
   for(size_t i=0; i < joint_data_.size(); ++i) {
-    low_cmd_.motor_cmd()[joint_data_[i].adr].q() = joint_data_[i].pos_cmd_;
-    low_cmd_.motor_cmd()[joint_data_[i].adr].dq() = joint_data_[i].vel_cmd_;
-    low_cmd_.motor_cmd()[joint_data_[i].adr].tau() = joint_data_[i].ff_cmd_;
-    low_cmd_.motor_cmd()[joint_data_[i].adr].kp() = joint_data_[i].kp_;
-    low_cmd_.motor_cmd()[joint_data_[i].adr].kd() = joint_data_[i].kd_;
+    lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].q() = joint_data_[i].pos_cmd_;
+    lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].dq() = joint_data_[i].vel_cmd_;
+    lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].tau() = joint_data_[i].ff_cmd_;
+    lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].kp() = joint_data_[i].kp_;
+    lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].kd() = joint_data_[i].kd_;
+    lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].mode(1); // 1:Enable, 0:Disable
   }
 
-  low_cmd_.crc() = Crc32Core((uint32_t *)&low_cmd_, (sizeof(low_cmd_) >> 2) - 1);
+  lowcmd_publisher_->unlockAndPublish();
 
-  lowcmd_publisher_->Write(low_cmd_);
+  // // --- Period statistics ---
+  // static size_t call_count = 0;
+  // static double period_sum = 0.0;
+  // static double max_period = 0.0;
+  // double current_period = period.seconds();
+  // call_count++;
+  // period_sum += current_period;
+  // if (current_period > max_period) {
+  //   max_period = current_period;
+  // }
+  // if (call_count == 100) {
+  //   double avg_period = period_sum / 100.0;
+  //   RCLCPP_INFO(*logger_, "Average write period over 100 calls: %.6f s, Max period: %.6f s", avg_period, max_period);
+  //   call_count = 0;
+  //   period_sum = 0.0;
+  //   max_period = 0.0;
+  // }
 
   return return_type::OK;
 }

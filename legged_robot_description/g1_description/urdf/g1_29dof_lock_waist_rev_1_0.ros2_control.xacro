@@ -3,7 +3,7 @@
 
   <xacro:macro name="g1_29dof_lock_waist_rev_1_0_ros2_control" params="prefix enable_sim:=false">
 
-    <ros2_control name="g1_29dof_lock_waist_rev_1_0_ros2_control" type="system">
+    <ros2_control name="g1_29dof_lock_waist_rev_1_0_ros2_control" type="system" is_async="true">
 
       <xacro:if value="${enable_sim}">
         <hardware>

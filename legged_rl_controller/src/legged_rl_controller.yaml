@@ -1,5 +1,5 @@
 legged_rl_controller:
-  update_rate: {
+  control_rate: {
     type: int,
     default_value: 50,
     description: Update rate of the RL controller in Hz.

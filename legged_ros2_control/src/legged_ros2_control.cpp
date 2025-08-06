@@ -191,15 +191,15 @@ void LeggedRos2Control::init()
         // wait until we hit the end of the period
         next_iteration_time += period;
 
-        if(measured_period - period_duration > period_error_threshold){
-          RCLCPP_WARN_THROTTLE(
-            logger_,
-            *node_->get_clock(),
-            1000, // 1 second throttle
-            "Measured period (%f s) is larger than expected period (%f s). "
-            "This can lead to performance issues.",
-            measured_period.seconds(), period_duration.seconds());
-        }
+        // if(measured_period - period_duration > period_error_threshold){
+        //   RCLCPP_WARN_THROTTLE(
+        //     logger_,
+        //     *node_->get_clock(),
+        //     1000, // 1 second throttle
+        //     "Measured period (%f s) is larger than expected period (%f s). "
+        //     "This can lead to performance issues.",
+        //     measured_period.seconds(), period_duration.seconds());
+        // }
 
         if(use_sim_time){ // TODO: check sim time
           this->controller_manager_->get_clock()->sleep_until(current_time + period);

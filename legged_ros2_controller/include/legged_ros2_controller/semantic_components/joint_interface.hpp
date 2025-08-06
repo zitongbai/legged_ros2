@@ -138,6 +138,13 @@ public:
     const std::vector<double> & kd){
     // check length is the same
     if (pos.size() != joint_num_ || vel.size() != joint_num_ || ff.size() != joint_num_ || kp.size() != joint_num_ || kd.size() != joint_num_) {
+      std::cout << "Error: Input vector sizes do not match the number of joints." 
+       << "Pos size: " << pos.size()
+        << ", Vel size: " << vel.size()
+        << ", FF size: " << ff.size()
+        << ", Kp size: " << kp.size()
+        << ", Kd size: " << kd.size()
+        << ", Joint num: " << joint_num_ << std::endl;
       throw std::invalid_argument("Input vector sizes must match the number of joints.");
     }
     

@@ -11,7 +11,6 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "legged_ros2_control/legged_ros2_control.hpp"
-#include "legged_ros2_control/robots/g1/g1_system_interface.hpp"
 
 int main(int argc, char **argv)
 {

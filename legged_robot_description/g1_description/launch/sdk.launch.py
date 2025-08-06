@@ -38,7 +38,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "gui",
-            default_value="true",
+            default_value="false",
             description="Start RViz2 automatically with this launch file.",
         )
     )
@@ -143,6 +143,11 @@ def generate_launch_description():
         executable="rqt_controller_manager",
     )
 
+    rqt_robot_steering = Node(
+        package="rqt_robot_steering",
+        executable="rqt_robot_steering",
+    )
+
     # Delay rviz start after `joint_state_broadcaster`
     delay_rviz_after_joint_state_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
@@ -165,7 +170,8 @@ def generate_launch_description():
         static_controller_spawner,
         delay_rviz_after_joint_state_broadcaster_spawner,
         delay_after_static_controller_spawner,
-        rqt_controller_manager
+        rqt_controller_manager,
+        rqt_robot_steering
     ]
 
     return LaunchDescription(declared_arguments + nodes)

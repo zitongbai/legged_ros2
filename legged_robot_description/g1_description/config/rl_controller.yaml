@@ -10,7 +10,7 @@ controller_manager:
 
 rl_controller:
   ros__parameters:
-    update_rate: 50 # Hz
+    control_rate: 50 # Hz
     imu_names:  # only use one imu for RL observation
       - imu-pelvis
     # The following parameters are exported in legged lab, it is 

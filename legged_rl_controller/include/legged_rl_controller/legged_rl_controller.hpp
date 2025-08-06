@@ -93,6 +93,9 @@ public:
   controller_interface::return_type update(
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
+  controller_interface::CallbackReturn on_deactivate(
+    const rclcpp_lifecycle::State & previous_state) override;
+
 private:
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_sub_;
   using TwistMsgSharedPtr = std::shared_ptr<geometry_msgs::msg::Twist>;
@@ -104,9 +107,13 @@ private:
   void update_parameters_();
   controller_interface::CallbackReturn configure_parameters_();
 
+  // Fall detection
+  bool detect_fall_();
+
   // RL policy network
   std::string rl_policy_path_;
   std::shared_ptr<torch::jit::script::Module> policy_net_;
+  std::thread inference_thread_;
 
   // RL observation
   std::vector<ObsTerm> obs_terms_;
@@ -135,6 +142,7 @@ private:
   // RL action
   ActionTerm action_term_;
   torch::Tensor action_tensor_;
+  std::vector<double> target_joint_pos_;
 
 };
 

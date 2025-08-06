@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 500  # Hz
+    update_rate: 1000  # Hz
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -156,7 +156,7 @@ static_controller:
 
 rl_controller:
   ros__parameters:
-    update_rate: 50 # Hz
+    control_rate: 50 # Hz
     imu_names:  # only use one imu for RL observation
       - imu-pelvis
     # The following parameters are exported in legged lab, it is 
