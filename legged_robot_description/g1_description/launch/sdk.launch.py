@@ -30,7 +30,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "rl_policy", 
-            default_value="policy.pt",
+            default_value="policy.onnx",
             description="RL policy file. This file is exported by IsaacLab automatically \
                         when playing the policy.",
         )

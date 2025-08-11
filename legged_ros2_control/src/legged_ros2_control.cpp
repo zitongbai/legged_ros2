@@ -210,6 +210,14 @@ void LeggedRos2Control::init()
     }
   );
 
+  // sched_param sched;
+  // sched.sched_priority = sched_get_priority_max(SCHED_FIFO);
+  // if (pthread_setschedparam(cm_thread_.native_handle(), SCHED_FIFO, &sched) != 0) {
+  //   RCLCPP_ERROR(logger_, "Failed to set thread scheduling policy to FIFO");
+  // } else {
+  //   RCLCPP_INFO(logger_, "Controller manager thread scheduling policy set to FIFO");
+  // }
+
   spin_thread_ = std::thread(
     [this](){
       RCLCPP_INFO(logger_, "Spinning controller manager executor in a separate thread");

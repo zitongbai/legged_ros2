@@ -61,8 +61,8 @@ protected:
   std::vector<std::string> joint_names_;
   std::vector<std::string> imu_names_;
 
-  std::vector<std::unique_ptr<semantic_components::IMUSensor>> imu_interfaces_;
-  std::unique_ptr<JointInterface> joint_interface_;
+  std::vector<std::shared_ptr<semantic_components::IMUSensor>> imu_interfaces_;
+  std::shared_ptr<JointInterface> joint_interface_;
 
 };
 

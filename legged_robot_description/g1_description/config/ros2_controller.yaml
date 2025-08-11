@@ -156,9 +156,13 @@ static_controller:
 
 rl_controller:
   ros__parameters:
-    control_rate: 50 # Hz
+    update_rate: 50
     imu_names:  # only use one imu for RL observation
       - imu-pelvis
+    range_lin_vel_x: [-1.0, 1.0]
+    range_lin_vel_y: [-1.0, 1.0]
+    range_ang_vel_z: [-1.0, 1.0]
+    
     # The following parameters are exported in legged lab, it is 
     # not recommended to change them manually.
     obs_names:

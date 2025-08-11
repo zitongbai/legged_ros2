@@ -69,3 +69,29 @@ legged_rl_controller:
         default_value: 0.0,
         description: Default position for joint position control
       }
+  range_lin_vel_x: {
+    type: double_array,
+    default_value: [0.0, 0.0],
+    description: Range for linear velocity in x direction. ,
+    validation: {
+      fixed_size<>: 2,
+    }
+  }
+  range_lin_vel_y: {
+    type: double_array,
+    default_value: [0.0, 0.0],
+    description: Range for linear velocity in y direction. ,
+    validation: {
+      fixed_size<>: 2,
+    }
+  }
+  range_ang_vel_z: {
+    type: double_array,
+    default_value: [0.0, 0.0],
+    description: Range for angular velocity in z direction. ,
+    validation: {
+      fixed_size<>: 2,
+    }
+  }
+
+

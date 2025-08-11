@@ -157,6 +157,32 @@ public:
     }
   }
 
+  void set_joint_command(const std::vector<float> & pos, 
+    const std::vector<float> & vel, 
+    const std::vector<float> & ff, 
+    const std::vector<float> & kp, 
+    const std::vector<float> & kd){
+    // check length is the same
+    if (pos.size() != joint_num_ || vel.size() != joint_num_ || ff.size() != joint_num_ || kp.size() != joint_num_ || kd.size() != joint_num_) {
+      std::cout << "Error: Input vector sizes do not match the number of joints." 
+       << "Pos size: " << pos.size()
+        << ", Vel size: " << vel.size()
+        << ", FF size: " << ff.size()
+        << ", Kp size: " << kp.size()
+        << ", Kd size: " << kd.size()
+        << ", Joint num: " << joint_num_ << std::endl;
+      throw std::invalid_argument("Input vector sizes must match the number of joints.");
+    }
+    
+    for(size_t i=0; i<joint_num_; i++){
+      command_interfaces_[5*i].get().set_value(pos[i]);
+      command_interfaces_[5*i+1].get().set_value(vel[i]);
+      command_interfaces_[5*i+2].get().set_value(ff[i]);
+      command_interfaces_[5*i+3].get().set_value(kp[i]);
+      command_interfaces_[5*i+4].get().set_value(kd[i]);
+    }
+  }
+
 private:
   std::vector<std::string> joint_names_;
   size_t joint_num_;

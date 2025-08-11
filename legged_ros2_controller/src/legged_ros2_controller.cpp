@@ -39,9 +39,9 @@ controller_interface::CallbackReturn LeggedController::on_configure(
       RCLCPP_WARN(get_node()->get_logger(), "No IMU sensors configured.");
   }
 
-  joint_interface_ = std::make_unique<JointInterface>(joint_names_);
+  joint_interface_ = std::make_shared<JointInterface>(joint_names_);
   for(const auto & imu: imu_names_){
-    imu_interfaces_.emplace_back(std::make_unique<semantic_components::IMUSensor>(imu));
+    imu_interfaces_.emplace_back(std::make_shared<semantic_components::IMUSensor>(imu));
   }
   return CallbackReturn::SUCCESS;
 }
