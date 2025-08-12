@@ -3,6 +3,9 @@
 <robot name="go2" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
     <xacro:arg name="DEBUG" default="false"/>
+    <xacro:arg name="prefix" default="" />
+    <xacro:arg name="enable_sim" default="true" />
+    <xacro:arg name="network_interface" default="lo" />
 
     <xacro:include filename="$(find go2_description)/xacro/const.xacro"/>
     <xacro:include filename="$(find go2_description)/xacro/materials.xacro"/>
@@ -134,5 +137,9 @@
     <xacro:leg name="RR" mirror="-1" mirror_dae="False"  front_hind="-1" front_hind_dae="False" />
     <xacro:leg name="RL" mirror="1"  mirror_dae="True"   front_hind="-1" front_hind_dae="False" />
 
-    <xacro:go2_ros2_control prefix=""/>
+    <xacro:go2_ros2_control 
+        prefix="$(arg prefix)" 
+        enable_sim="$(arg enable_sim)" 
+        network_interface="$(arg network_interface)"/>
+        
 </robot>

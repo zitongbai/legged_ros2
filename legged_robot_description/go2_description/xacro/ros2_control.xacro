@@ -1,12 +1,22 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="go2_ros2_control" params="prefix">
+  <xacro:macro name="go2_ros2_control" params="prefix enable_sim:=false network_interface:=lo">
 
     <ros2_control name="go2_ros2_control" type="system">
-      <hardware>
-        <plugin>legged_ros2_control/MujocoSystemInterface</plugin>
-      </hardware>
+
+      <xacro:if value="${enable_sim}">
+        <hardware>
+          <plugin>legged_ros2_control/MujocoSystemInterface</plugin>
+        </hardware>
+      </xacro:if>
+
+      <xacro:unless value="${enable_sim}">
+        <hardware>
+          <plugin>legged_ros2_control/Go2SystemInterface</plugin>
+          <param name="network_interface">${network_interface}</param>
+        </hardware>
+      </xacro:unless>
 
       <joint name="${prefix}FL_hip_joint">
         <command_interface name="position">

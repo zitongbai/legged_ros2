@@ -37,30 +37,6 @@ using namespace unitree::robot;
 using namespace unitree::robot::g1;
 using namespace unitree_hg::msg::dds_;
 
-template <typename T>
-class DataBuffer {
- public:
-  void SetData(const T &newData) {
-    std::unique_lock<std::shared_mutex> lock(mutex);
-    data = std::make_shared<T>(newData);
-  }
-
-  std::shared_ptr<const T> GetData() {
-    std::shared_lock<std::shared_mutex> lock(mutex);
-    return data ? data : nullptr;
-  }
-
-  void Clear() {
-    std::unique_lock<std::shared_mutex> lock(mutex);
-    data = nullptr;
-  }
-
- private:
-  std::shared_ptr<T> data;
-  std::shared_mutex mutex;
-};
-
-
 class HARDWARE_INTERFACE_PUBLIC G1SystemInterface : public LeggedSystemInterface
 {
 
@@ -76,11 +52,6 @@ public:
 
   return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  static const std::string HG_CMD_TOPIC;
-  static const std::string HG_STATE_TOPIC;
-
-
-
 protected:
 
   bool build_joint_data_() override;
@@ -91,16 +62,6 @@ protected:
   std::unique_ptr<g1::LowCmdPublisher> lowcmd_publisher_;
   std::shared_ptr<g1::LowStateSubscriber> lowstate_subscriber_;
 
-  // ChannelPublisherPtr<LowCmd_> lowcmd_publisher_;
-  // ChannelSubscriberPtr<LowState_> lowstate_subscriber_;
-
-  // void lowstate_handler_(const void * msg);
-  // bool connected_;
-  // LowState_ low_state_;
-  // mutable std::mutex low_state_mutex_;
-  // LowCmd_ low_cmd_;
-
-  // Mode mode_pr_ = Mode::PR;   // Parallel mechanism (ankle and waist) control mode
   uint8_t mode_machine_ = 0;  // G1 Type
 
 };

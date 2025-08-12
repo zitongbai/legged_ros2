@@ -158,7 +158,7 @@ rl_controller:
   ros__parameters:
     update_rate: 50
     imu_names:  # only use one imu for RL observation
-      - imu-pelvis
+      - imu-pelvis # refer to ros2 control xacro file
     range_lin_vel_x: [-1.0, 1.0]
     range_lin_vel_y: [-1.0, 1.0]
     range_ang_vel_z: [-1.0, 1.0]

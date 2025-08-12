@@ -21,16 +21,23 @@ public:
   LowCmdPublisher(std::string topic = "rt/lowcmd") : RealTimePublisher<MsgType>(topic) 
   {
     msg_.mode_pr() = static_cast<uint8_t>(Mode::PR);
-    for(auto & m : msg_.motor_cmd()) m.mode(1);
+    for(auto & m : msg_.motor_cmd()){
+      m.mode(1);
+      m.q() = 0.0f;
+      m.dq() = 0.0f;
+      m.tau() = 0.0f;
+      m.kp() = 0.0f;
+      m.kd() = 0.0f;
+    }
   }
 
 private:
-    /**
-     * @brief Something before sending the message.
-     */
-    void pre_communication() override {
-        msg_.crc() = crc32_core((uint32_t*)&msg_, (sizeof(MsgType)>>2)-1);
-    }
+  /**
+   * @brief Something before sending the message.
+   */
+  void pre_communication() override {
+      msg_.crc() = crc32_core((uint32_t*)&msg_, (sizeof(MsgType)>>2)-1);
+  }
 };
 
 

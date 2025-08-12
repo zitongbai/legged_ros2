@@ -4,6 +4,7 @@
 
   <xacro:arg name="prefix" default="" />
   <xacro:arg name="enable_sim" default="true" />
+  <xacro:arg name="network_interface" default="lo" />
 
   <xacro:include filename="$(find g1_description)/urdf/g1_29dof_lock_waist_rev_1_0_macro.urdf.xacro" />
   
@@ -11,6 +12,9 @@
 
   <xacro:g1_29dof_lock_waist_rev_1_0 prefix="$(arg prefix)" />
 
-  <xacro:g1_29dof_lock_waist_rev_1_0_ros2_control prefix="$(arg prefix)" enable_sim="$(arg enable_sim)"/>
+  <xacro:g1_29dof_lock_waist_rev_1_0_ros2_control 
+    prefix="$(arg prefix)" 
+    enable_sim="$(arg enable_sim)" 
+    network_interface="$(arg network_interface)"/>
 
 </robot>

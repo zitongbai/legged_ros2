@@ -54,12 +54,9 @@ public:
             robot->data.command.range.ang_vel_z = cfg.command_velocity_range.ang_vel_z;
         }
 
-        std::cout << "ManagerBasedRLEnv: Loading managers and algorithm..." << std::endl;
         // load managers
         action_manager = std::make_unique<ActionManager>(std::move(cfg.action_cfgs), this);
-        std::cout << "ManagerBasedRLEnv: ActionManager loaded." << std::endl;
         observation_manager = std::make_unique<ObservationManager>(std::move(cfg.observation_cfgs), this);
-        std::cout << "ManagerBasedRLEnv: ObservationManager loaded." << std::endl;
 
         // load algorithm
         if (!cfg.policy_net_path.empty()) {

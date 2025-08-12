@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="g1_29dof_lock_waist_rev_1_0_ros2_control" params="prefix enable_sim:=false">
+  <xacro:macro name="g1_29dof_lock_waist_rev_1_0_ros2_control" params="prefix enable_sim:=false network_interface:=lo">
 
     <ros2_control name="g1_29dof_lock_waist_rev_1_0_ros2_control" type="system" is_async="true">
 
@@ -14,7 +14,7 @@
       <xacro:unless value="${enable_sim}">
         <hardware>
           <plugin>legged_ros2_control/G1SystemInterface</plugin>
-          <param name="network_interface">lo</param>
+          <param name="network_interface">${network_interface}</param>
         </hardware>
       </xacro:unless>
 

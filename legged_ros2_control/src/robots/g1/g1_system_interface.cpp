@@ -14,31 +14,6 @@
 
 namespace legged {
 
-inline uint32_t Crc32Core(uint32_t *ptr, uint32_t len) {
-  uint32_t xbit = 0;
-  uint32_t data = 0;
-  uint32_t CRC32 = 0xFFFFFFFF;
-  const uint32_t dwPolynomial = 0x04c11db7;
-  for (uint32_t i = 0; i < len; i++) {
-    xbit = 1 << 31;
-    data = ptr[i];
-    for (uint32_t bits = 0; bits < 32; bits++) {
-      if (CRC32 & 0x80000000) {
-        CRC32 <<= 1;
-        CRC32 ^= dwPolynomial;
-      } else
-        CRC32 <<= 1;
-      if (data & xbit) CRC32 ^= dwPolynomial;
-
-      xbit >>= 1;
-    }
-  }
-  return CRC32;
-};
-
-const std::string G1SystemInterface::HG_CMD_TOPIC = "rt/lowcmd";
-const std::string G1SystemInterface::HG_STATE_TOPIC = "rt/lowstate";
-
 CallbackReturn G1SystemInterface::on_init(const hardware_interface::HardwareInfo & info){
   if (LeggedSystemInterface::on_init(info) != CallbackReturn::SUCCESS) {
     return CallbackReturn::ERROR;
@@ -65,9 +40,9 @@ CallbackReturn G1SystemInterface::on_configure(const rclcpp_lifecycle::State & /
   unitree::robot::ChannelFactory::Instance()->Init(0, network_interface_);
 
   RCLCPP_INFO(*logger_, "G1SystemInterface configured with network interface: %s", network_interface_.c_str());
-  RCLCPP_INFO(*logger_, "Trying to shutdown motion control-related service...");
 
   // -------------------------------------- TODO --------------------------------------
+  // RCLCPP_INFO(*logger_, "Trying to shutdown motion control-related service...");
   // try {
   //   // try to shutdown motion control-related service
   //   msc_ = std::make_shared<unitree::robot::b2::MotionSwitcherClient>();
@@ -87,8 +62,7 @@ CallbackReturn G1SystemInterface::on_configure(const rclcpp_lifecycle::State & /
   //   RCLCPP_ERROR(*logger_, "Error in motion switcher: %s", e.what());
   //   return CallbackReturn::ERROR;
   // }
-
-  RCLCPP_INFO(*logger_, "Motion control-related service shutdown successfully");
+  // RCLCPP_INFO(*logger_, "Motion control-related service shutdown successfully");
 
   lowstate_subscriber_ = std::make_shared<g1::LowStateSubscriber>();
   lowcmd_publisher_ = std::make_unique<g1::LowCmdPublisher>();
@@ -152,7 +126,7 @@ return_type G1SystemInterface::read(const rclcpp::Time & /*time*/, const rclcpp:
 }
 
 
-return_type G1SystemInterface::write(const rclcpp::Time & /*time*/, const rclcpp::Duration & period){
+return_type G1SystemInterface::write(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/){
 
   // Prepare low_cmd_
 
