@@ -4,23 +4,11 @@
 #pragma once
 
 #include <algorithm>
-#include <eigen3/Eigen/Dense>
 #include <unordered_map>
 #include "legged_ros2_control/robots/unitree/dds_wrapper/common/Subscription.h"
-#include "legged_ros2_control/robots/unitree/dds_wrapper/common/unitree_joystick.hpp"
 
 #include <unitree/idl/go2/LowCmd_.hpp>
 #include <unitree/idl/go2/LowState_.hpp>
-#include <unitree/idl/go2/SportModeCmd_.hpp>
-#include <unitree/idl/go2/SportModeState_.hpp>
-#include <unitree/idl/go2/LidarState_.hpp>
-#include <unitree/idl/go2/UwbState_.hpp>
-#include <unitree/idl/go2/HeightMap_.hpp>
-#include <unitree/idl/ros2/Time_.hpp>
-#include <unitree/idl/ros2/PointCloud2_.hpp>
-#include <unitree/idl/go2/WirelessController_.hpp>
-#include <unitree/idl/go2/MotorCmds_.hpp>
-#include <unitree/idl/go2/MotorStates_.hpp>
 
 
 namespace unitree
@@ -37,7 +25,7 @@ public:
 
   LowStateSubscriber(std::string topic = "rt/lowstate") : SubscriptionBase<MsgType>(topic) {}
 
-  void update()
+  void update() override
   {
     std::lock_guard<std::mutex> lock(mutex_);
     // ********** Joystick ********** //
@@ -81,8 +69,6 @@ public:
   }
 
   bool isJoystickTimeout() const  { return isJoystickTimeout_; }
-
-  unitree::common::UnitreeJoystick joystick;
 
 private:
   uint32_t joystick_timeout_ms_ = 3000;

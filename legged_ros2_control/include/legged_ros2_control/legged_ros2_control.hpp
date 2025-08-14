@@ -27,7 +27,7 @@ namespace legged {
 
 class LeggedRos2Control{
 public:
-  LeggedRos2Control(rclcpp::Node::SharedPtr &node);
+  LeggedRos2Control(rclcpp::Node::SharedPtr node);
   ~LeggedRos2Control();
 
   void init();

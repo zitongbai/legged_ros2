@@ -19,7 +19,7 @@
 
 namespace legged
 {
-LeggedRos2Control::LeggedRos2Control(rclcpp::Node::SharedPtr &node) : 
+LeggedRos2Control::LeggedRos2Control(rclcpp::Node::SharedPtr node) : 
   node_(node), 
   logger_(rclcpp::get_logger(node_->get_name()+std::string(".legged_ros2_control")))
 {

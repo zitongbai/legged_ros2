@@ -5,7 +5,6 @@
 
 #include <eigen3/Eigen/Dense>
 #include "legged_ros2_control/robots/unitree/dds_wrapper/common/Subscription.h"
-#include "legged_ros2_control/robots/unitree/dds_wrapper/common/unitree_joystick.hpp"
 #include "legged_ros2_control/robots/unitree/robots/g1/define.hpp"
 
 #include <unitree/idl/hg/LowCmd_.hpp>
@@ -45,7 +44,7 @@ public:
         return MachineType::unknown;
     }
 
-    void update()
+    void update() override
     {
         std::lock_guard<std::mutex> lock(mutex_);
         // ********** Joystick ********** //
@@ -89,7 +88,6 @@ public:
     }
     
     bool isJoystickTimeout() const  { return isJoystickTimeout_; }
-    unitree::common::UnitreeJoystick joystick;
     
 private:
     uint32_t joystick_timeout_ms_ = 3000;

@@ -8,6 +8,8 @@
 #include <thread>
 #include <spdlog/spdlog.h>
 
+#include "legged_ros2_control/robots/unitree/dds_wrapper/common/unitree_joystick.hpp"
+
 namespace unitree
 {
 namespace robot
@@ -57,6 +59,9 @@ public:
     }
   }
 
+  virtual void update() = 0;
+
+  unitree::common::UnitreeJoystick joystick;
   MessageType msg_;
 protected:
   virtual void pre_communication() {}  // something before receiving message

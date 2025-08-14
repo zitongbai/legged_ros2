@@ -19,7 +19,7 @@ namespace legged {
 class MujocoRos2Control : public LeggedRos2Control {
 
 public:
-  MujocoRos2Control(rclcpp::Node::SharedPtr &node, mjModel *mujoco_model, mjData *mujoco_data) 
+  MujocoRos2Control(rclcpp::Node::SharedPtr node, mjModel *mujoco_model, mjData *mujoco_data) 
       : LeggedRos2Control(node), mj_model_(mujoco_model), mj_data_(mujoco_data) {}
 
   void update(const rclcpp::Time &time, const rclcpp::Duration &period) override;

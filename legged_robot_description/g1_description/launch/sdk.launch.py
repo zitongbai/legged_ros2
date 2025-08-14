@@ -154,10 +154,10 @@ def generate_launch_description():
         executable="rqt_controller_manager",
     )
 
-    rqt_robot_steering = Node(
-        package="rqt_robot_steering",
-        executable="rqt_robot_steering",
-    )
+    # rqt_robot_steering = Node(
+    #     package="rqt_robot_steering",
+    #     executable="rqt_robot_steering",
+    # )
 
     # Delay rviz start after `joint_state_broadcaster`
     delay_rviz_after_joint_state_broadcaster_spawner = RegisterEventHandler(
@@ -182,7 +182,7 @@ def generate_launch_description():
         delay_rviz_after_joint_state_broadcaster_spawner,
         delay_after_static_controller_spawner,
         rqt_controller_manager,
-        rqt_robot_steering
+        # rqt_robot_steering
     ]
 
     return LaunchDescription(declared_arguments + nodes)

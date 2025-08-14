@@ -22,10 +22,6 @@
 #include "legged_ros2_control/robots/unitree/robots/go2/go2_sub.h"
 #include "legged_ros2_control/robots/unitree/robots/go2/define.h"
 
-// DDS
-#include <unitree/robot/channel/channel_publisher.hpp>
-#include <unitree/robot/channel/channel_subscriber.hpp>
-
 
 namespace legged {
 
