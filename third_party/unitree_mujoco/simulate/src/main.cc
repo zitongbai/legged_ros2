@@ -95,6 +95,14 @@ namespace
   Float64MultiArray terrain_heights_msg;
   rclcpp::Publisher<Float64MultiArray>::SharedPtr terrain_heights_publisher;
 
+  struct ElevationMap{
+    int grid_num[2] = {15, 15}; // grid size for terrain heights, [0]:x, [1]:y
+    double grid_size = 0.1; // grid size in meters
+    double offset[2] = {0.0, 0.0}; // offset in meters, [0]:x, [1]:y
+    int update_rate = 50; // update rate in Hz
+    double vis_radius = 0.02; // radius of visualization spheres in meters
+  } elevation_map;
+
   //---------------------------------------- plugin handling -----------------------------------------
 
   // return the path to the directory containing the current executable
@@ -601,7 +609,52 @@ void *UnitreeSdk2BridgeThread(void *arg)
   pthread_exit(NULL);
 }
 
+void quat_apply(const double *quat, const double *vec, double *result)
+{
+  // quat: [w, x, y, z]
+  double w = quat[0], x = quat[1], y = quat[2], z = quat[3];
+  // cross(q_xyz, v)
+  double t[3] = {
+      y * vec[2] - z * vec[1],
+      z * vec[0] - x * vec[2],
+      x * vec[1] - y * vec[0]
+  };
+  // t = 2 * cross(q_xyz, v)
+  t[0] *= 2; t[1] *= 2; t[2] *= 2;
+  // result = v + w * t + cross(q_xyz, t)
+  result[0] = vec[0] + w * t[0] + (y * t[2] - z * t[1]);
+  result[1] = vec[1] + w * t[1] + (z * t[0] - x * t[2]);
+  result[2] = vec[2] + w * t[2] + (x * t[1] - y * t[0]);
+}
+
+void yaw_quat(const double *quat, double * result)
+{
+  // quat: [w, x, y, z]
+  double w = quat[0], x = quat[1], y = quat[2], z = quat[3];
+  double yaw = std::atan2(2 * (x * y + w * z), 1 - 2 * (y * y + z * z));
+  result[0] = std::cos(yaw / 2);
+  result[1] = 0.0; // x component is zero
+  result[2] = 0.0; // y component is zero
+  result[3] = std::sin(yaw / 2); // z component is sin(yaw / 2)
+  // normalize the quaternion
+  double norm = std::sqrt(result[0] * result[0] + result[1] * result[1] +
+                          result[2] * result[2] + result[3] * result[3]);
+  result[0] /= norm; 
+  result[1] /= norm;
+  result[2] /= norm;
+  result[3] /= norm;
+}
+
+void quat_apply_yaw(const double *quat, const double *vec, double *result)
+{
+  // Apply yaw rotation to the vector
+  double yaw_quat_result[4];
+  yaw_quat(quat, yaw_quat_result);
+  quat_apply(yaw_quat_result, vec, result);
+}
+
 void *TerrainHeightSamplingThread(void *arg){
+
   while(1){
     if(d){
       std::cout << "Mujoco data is prepared" << std::endl;
@@ -610,52 +663,74 @@ void *TerrainHeightSamplingThread(void *arg){
     usleep(500000);
   }
 
-  const int grid_size = 3;
-  const double interval = 0.2;
-  const double start_offset = -((grid_size - 1) * interval) / 2.0;
+  mujoco::Simulate *sim = static_cast<mujoco::Simulate *>(arg);
+
+  // build sampling x, y
+  std::vector<double> x_samples(elevation_map.grid_num[0], 0.0);
+  std::vector<double> y_samples(elevation_map.grid_num[1], 0.0);
+  double x_start = elevation_map.offset[0] + elevation_map.grid_num[0] / 2.0 * elevation_map.grid_size;
+  double y_start = elevation_map.offset[1] + elevation_map.grid_num[1] / 2.0 * elevation_map.grid_size;
+
+  for(size_t i=0; i<x_samples.size(); ++i){
+    x_samples[i] = x_start - i * elevation_map.grid_size;
+  }
+  for(size_t i=0; i<y_samples.size(); ++i){
+    y_samples[i] = y_start - i * elevation_map.grid_size;
+  }
+
+  terrain_heights_msg.data.resize(elevation_map.grid_num[0] * elevation_map.grid_num[1]);
+  terrain_heights_msg.layout.dim.resize(2);
+  terrain_heights_msg.layout.dim[0].label = "x";
+  terrain_heights_msg.layout.dim[0].size = elevation_map.grid_num[0];
+  terrain_heights_msg.layout.dim[1].label = "y";
+  terrain_heights_msg.layout.dim[1].size = elevation_map.grid_num[1];
 
   while (true)
   {
     double base_x = d->qpos[0];
     double base_y = d->qpos[1];
-    double base_z = d->qpos[2];
+    double quat[4] = {d->qpos[3], d->qpos[4], d->qpos[5], d->qpos[6]}; // w, x, y, z
 
-    double heights[grid_size][grid_size];
-
-    for (int i = 0; i < grid_size; ++i)
+    for (int i = 0; i < elevation_map.grid_num[0]; ++i)
     {
-      for (int j = 0; j < grid_size; ++j)
+      for (int j = 0; j < elevation_map.grid_num[1]; ++j)
       {
-        double x = base_x + start_offset + i * interval;
-        double y = base_y + start_offset + j * interval;
-        double ray_start[3] = {x, y, 10.0};
+        double sample_vec[3] = {
+          x_samples[i], 
+          y_samples[j],
+          0.0 
+        };
+        double rotated_vec[3];
+        quat_apply_yaw(quat, sample_vec, rotated_vec);
+        double ray_start[3] = {base_x + rotated_vec[0], base_y + rotated_vec[1], 10.0};
         double dir_vec[3] = {0.0, 0.0, -1.0}; // down direction
-        mjtByte geomgroup[mjNGROUP] = {1, 0, 0, 0, 0, 0};
-        int bodyexclude = 2;
+        mjtByte geomgroup[mjNGROUP] = {1, 0, 0, 0, 0, 0}; // only geom group 0 is considered
+        int bodyexclude = -1;
         int geomid[1] = {-1};
 
         double dist = mj_ray(m, d, ray_start, dir_vec, geomgroup, 1, bodyexclude, geomid);
-
+        
         if(dist > 0) {
-          heights[i][j] = 10.0 - dist;
+          // get terrain height
+          double terrain_height = ray_start[2] - dist;
+          // calculate the linear index
+          int index = i * elevation_map.grid_num[1] + j;
+          // prepare the terrain height message
+          terrain_heights_msg.data[index] = terrain_height;
+          // render in mujoco
+          sim->elevation_map_vis_->GetPos()[index][0] = ray_start[0]; // x
+          sim->elevation_map_vis_->GetPos()[index][1] = ray_start[1]; // y
+          sim->elevation_map_vis_->GetPos()[index][2] = terrain_height; // z
         } else {
-          std::cout << "Raycast failed at (" << x << ", " << y << ")" << std::endl;
+          std::cout << "Raycast failed at (" << ray_start[0] << ", " << ray_start[1] << ")" << std::endl;
         }
       }
     }
 
     // publish terrain heights
-    terrain_heights_msg.data.clear();
-    for (int i = 0; i < grid_size; ++i)
-    {
-      for (int j = 0; j < grid_size; ++j)
-      {
-        terrain_heights_msg.data.push_back(heights[i][j]);
-      }
-    }
     terrain_heights_publisher->publish(terrain_heights_msg);
 
-    usleep(1000000); // 1Hz
+    usleep(1000000 / elevation_map.update_rate); // update rate in Hz
   }
 
   pthread_exit(NULL);
@@ -735,6 +810,25 @@ int main(int argc, char **argv)
   config.joystick_bits = yaml_node["joystick_bits"].as<int>();
 
   sim->use_elastic_band_ = config.enable_elastic_band;
+
+  auto elevation_map_cfg = yaml_node["elevation_map"];
+  sim->render_elevation_map_ = elevation_map_cfg["render"].as<int>(0); // Enable elevation map rendering
+  elevation_map.grid_num[0] = elevation_map_cfg["grid_num_x"].as<int>(15);
+  elevation_map.grid_num[1] = elevation_map_cfg["grid_num_y"].as<int>(15);
+  elevation_map.grid_size = elevation_map_cfg["grid_size"].as<double>(0.1);
+  elevation_map.offset[0] = elevation_map_cfg["offset_x"].as<double>(0.0);
+  elevation_map.offset[1] = elevation_map_cfg["offset_y"].as<double>(0.0);
+  elevation_map.update_rate = elevation_map_cfg["update_rate"].as<int>(50);
+  elevation_map.vis_radius = elevation_map_cfg["vis_radius"].as<double>(0.02);
+  if (sim->render_elevation_map_)
+  {
+    uint8_t rgba[4] = {255, 0, 0, 255}; // red color
+    sim->elevation_map_vis_ = std::make_unique<mj::ElevationMapVis>(
+      elevation_map.grid_num[0]*elevation_map.grid_num[1],
+      elevation_map.vis_radius,
+      rgba
+    );
+  }
   yaml_node.~Node();
   
   std::string pkg_path = ament_index_cpp::get_package_share_directory("unitree_mujoco");
@@ -750,7 +844,7 @@ int main(int argc, char **argv)
   }
 
   pthread_t terrain_height_sampling_thread;
-  rc = pthread_create(&terrain_height_sampling_thread, NULL, TerrainHeightSamplingThread, NULL);
+  rc = pthread_create(&terrain_height_sampling_thread, NULL, TerrainHeightSamplingThread, sim.get());
   if (rc != 0)
   {
     std::cout << "Error:unable to create terrain height sampling thread," << rc << std::endl;

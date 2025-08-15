@@ -12,3 +12,14 @@ joystick_bits: 16 # Some game controllers may only have 8-bit accuracy
 print_scene_information: 1 # Print link, joint and sensors information of robot
 
 enable_elastic_band: 1 # Virtual spring band, used for lifting h1
+
+# elevation map configuration
+elevation_map:
+  render: 1 # Render elevation map
+  grid_num_x: 15 # Number of grid cells in x direction
+  grid_num_y: 15 # Number of grid cells in y direction
+  grid_size: 0.1 # Size of each grid cell in meters
+  offset_x: 0.5 # Offset in x direction in meters
+  offset_y: 0.0 # Offset in y direction in meters
+  update_rate: 50 # Update rate in Hz
+  vis_radius: 0.02 # Radius of visualization spheres in meters

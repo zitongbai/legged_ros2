@@ -46,6 +46,50 @@ namespace mujoco
     bool enable_ = true;
     std::vector<double> f_ = {0, 0, 0};
   };
+  class ElevationMapVis{
+  public:
+    ElevationMapVis(int num, double radius, uint8_t rgba[4]):num_(num), radius_(radius)
+    {
+      size_[0] = radius_;
+      rgba_[0] = rgba[0] / 255.0f;
+      rgba_[1] = rgba[1] / 255.0f;
+      rgba_[2] = rgba[2] / 255.0f;
+      rgba_[3] = rgba[3] / 255.0f;
+      // initialize pos_
+      pos_.resize(num_);
+      for (int i = 0; i < num_; ++i) {
+        pos_[i].resize(3, 0.0);
+      }
+    }
+    ~ElevationMapVis(){};
+
+    const std::vector<std::vector<double>>& GetPos() const { return pos_; }
+    std::vector<std::vector<double>>& GetPos() { return pos_; }
+
+    void render(mjvScene *scene, mjvOption * opt){
+      mjvGeom * geom_ptr;
+      for (int i = 0; i < num_; ++i) {
+        scene->ngeom += 1;
+        // point to the lsat location in geoms buffer
+        geom_ptr = scene->geoms + scene->ngeom - 1;
+        // decor geom
+        geom_ptr->objtype = mjOBJ_UNKNOWN;
+        geom_ptr->objid = -1;
+        geom_ptr->category = mjCAT_DECOR;
+        geom_ptr->segid = scene->ngeom;
+        // add it to the scene
+        mjv_initGeom(geom_ptr, mjGEOM_SPHERE, size_, pos_[i].data(), rot3x3_, rgba_);
+      }
+    }
+    int num_ = 0; // number of spheres
+    mjtNum radius_ = 0.0; // radius of spheres
+    mjtNum size_[3] = {0.0, 0.0, 0.0}; // size of spheres
+    float rgba_[4] = {0.0f, 0.0f, 0.0f, 1.0f}; // color of spheres
+    mjtNum rot3x3_[9] = {1.0, 0.0, 0.0,
+                        0.0, 1.0, 0.0,
+                        0.0, 0.0, 1.0};
+    std::vector<std::vector<double>> pos_;
+  };
   // The viewer itself doesn't require a reentrant mutex, however we use it in
   // order to provide a Python sync API that doesn't require separate locking
   // (since sync is by far the most common operation), but that also won't
@@ -337,6 +381,9 @@ namespace mujoco
 
     ElasticBand elastic_band_;
     int use_elastic_band_ = 0;
+
+    int render_elevation_map_ = 0;
+    std::unique_ptr<ElevationMapVis> elevation_map_vis_;
   };
 } // namespace mujoco
 

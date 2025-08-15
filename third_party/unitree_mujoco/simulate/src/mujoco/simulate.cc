@@ -3107,6 +3107,10 @@ namespace mujoco
           this->platform_ui->key_9_pressed_ = false;
         }
       }
+
+      if (render_elevation_map_){
+        elevation_map_vis_->render(&this->scn, &this->opt);
+      }
       
       // render while simulation is running
       this->Render();
