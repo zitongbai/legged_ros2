@@ -55,9 +55,9 @@ public:
     // print joystick operation instructions
     std::cout << "----------------------------------------------------" << std::endl;
     std::cout << "Joystick Operation Instructions:" << std::endl;
-    std::cout << "  A: Switch to RL controller" << std::endl;
-    std::cout << "  B: Switch to Static controller" << std::endl;
-    std::cout << "  Y: Switch to Joint State Broadcaster only" << std::endl;
+    std::cout << "  LB+A: Switch to RL controller" << std::endl;
+    std::cout << "  LB+B: Switch to Static controller" << std::endl;
+    std::cout << "  LB+Y: Switch to Joint State Broadcaster only" << std::endl;
     std::cout << "----------------------------------------------------" << std::endl;
 
     while (rclcpp::ok()) {
@@ -83,11 +83,14 @@ private:
   }
 
   void handle_controller_switch() {
-    if (low_state_subscriber_->joystick.A.on_pressed) {
+    if (low_state_subscriber_->joystick.A.on_pressed && 
+        low_state_subscriber_->joystick.LB.pressed) {
       set_controller_switch({"rl_controller"}, {"static_controller"}, "Switched to RL controller.");
-    } else if (low_state_subscriber_->joystick.B.on_pressed) {
+    } else if (low_state_subscriber_->joystick.B.on_pressed && 
+        low_state_subscriber_->joystick.LB.pressed) {
       set_controller_switch({"static_controller"}, {"rl_controller"}, "Switched to Static controller.");
-    } else if (low_state_subscriber_->joystick.Y.on_pressed) {
+    } else if (low_state_subscriber_->joystick.Y.on_pressed && 
+        low_state_subscriber_->joystick.LB.pressed) {
       set_controller_switch({}, {"rl_controller", "static_controller"}, "Switched to Joint State Broadcaster only.");
     }
   }
