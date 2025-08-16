@@ -37,6 +37,13 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument(
+            "controller_config", 
+            default_value="vanilla_rl_controller.yaml",
+            description="Controller configuration file.",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
             "gui",
             default_value="false",
             description="Start RViz2 automatically with this launch file.",
@@ -63,6 +70,7 @@ def generate_launch_description():
     description_package = LaunchConfiguration("description_package")
     description_file = LaunchConfiguration("description_file")
     rl_policy = LaunchConfiguration("rl_policy")
+    controller_config = LaunchConfiguration("controller_config")
     gui = LaunchConfiguration("gui")
     prefix = LaunchConfiguration("prefix")
     network_interface = LaunchConfiguration("network_interface")
@@ -94,11 +102,11 @@ def generate_launch_description():
         )
     }
 
-    controller_config = PathJoinSubstitution(
+    controller_config_path = PathJoinSubstitution(
         [
             FindPackageShare(description_package),
             "config",
-            "ros2_controller.yaml",
+            controller_config
         ]
     )
     rviz_config_file = PathJoinSubstitution(
@@ -108,7 +116,7 @@ def generate_launch_description():
     control_node = Node(
         package="legged_ros2_control",
         executable="g1_node",
-        parameters=[controller_config, robot_description, rl_policy_path],
+        parameters=[controller_config_path, robot_description, rl_policy_path],
         remappings=[
             ("~/robot_description", "/robot_description"),
         ],
