@@ -10,5 +10,6 @@ Most code here are from [Unitree's official repository](https://github.com/unitr
 - Modify `CMakeLists.txt` in simulate. 
 - Some new stl file in `unitree_robots/g1/meshes`.
 - Add `mj_ray` to get the surrounding terrain height. 
+- Render elevation map in mujoco
 - Modify `<default>` in robot model xml files to set `<geom>` group as `1`.
 
