@@ -48,10 +48,12 @@ public:
 protected:
   bool build_joint_data_() override;
 
-    std::string network_interface_;
+  std::string network_interface_;
 
-    std::unique_ptr<go2::LowCmdPublisher> lowcmd_publisher_;
-    std::unique_ptr<go2::LowStateSubscriber> lowstate_subscriber_;
+  std::unique_ptr<go2::LowCmdPublisher> lowcmd_publisher_;
+  std::unique_ptr<go2::LowStateSubscriber> lowstate_subscriber_;
+
+  bool enable_lowlevel_write_ = false; // if true, do not write lowcmd to robot
 
 };
 

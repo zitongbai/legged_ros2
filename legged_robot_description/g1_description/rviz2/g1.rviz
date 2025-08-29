@@ -9,6 +9,7 @@ Panels:
         - /RobotModel1
         - /TF1
         - /TF1/Frames1
+        - /TF1/Tree1
       Splitter Ratio: 0.5
     Tree Height: 1496
   - Class: rviz_common/Selection
@@ -311,9 +312,9 @@ Visualization Manager:
         logo_link:
           Value: false
         mid360_link:
-          Value: false
+          Value: true
         pelvis:
-          Value: false
+          Value: true
         pelvis_contour_link:
           Value: false
         right_ankle_pitch_link:
@@ -469,10 +470,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2503993809223175
+      Pitch: 0.21539942920207977
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.37220415472984314
+      Yaw: 0.4172026813030243
     Saved: ~
 Window Geometry:
   Displays:
@@ -491,4 +492,4 @@ Window Geometry:
     collapsed: false
   Width: 3268
   X: 140
-  Y: 804
+  Y: 54

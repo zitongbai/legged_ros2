@@ -1,4 +1,3 @@
-
 from launch import LaunchDescription
 from launch.actions import RegisterEventHandler, DeclareLaunchArgument
 from launch.conditions import IfCondition
@@ -44,9 +43,16 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument(
-            "gui",
+            "use_rviz",
             default_value="false",
             description="Start RViz2 automatically with this launch file.",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "use_rqt_cm", 
+            default_value="true",
+            description="Start rqt_controller_manager automatically with this launch file.",
         )
     )
     declared_arguments.append(
@@ -65,15 +71,25 @@ def generate_launch_description():
             description="network_interface for Unitree SDK2",
         )
     )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "enable_lowlevel_write",
+            default_value="true",
+            description="Enable low-level command writing, useful in debugging or testing scenarios. \
+                        If set to true, the robot will receive low-level commands from the controller.",
+        )
+    )
 
     # Initialize Arguments
     description_package = LaunchConfiguration("description_package")
     description_file = LaunchConfiguration("description_file")
     rl_policy = LaunchConfiguration("rl_policy")
     controller_config = LaunchConfiguration("controller_config")
-    gui = LaunchConfiguration("gui")
+    use_rviz = LaunchConfiguration("use_rviz")
+    use_rqt_cm = LaunchConfiguration("use_rqt_cm")
     prefix = LaunchConfiguration("prefix")
     network_interface = LaunchConfiguration("network_interface")
+    enable_lowlevel_write = LaunchConfiguration("enable_lowlevel_write")
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -89,9 +105,6 @@ def generate_launch_description():
             " ", 
             "enable_sim:=",
             "false", 
-            " ",
-            "network_interface:=", 
-            network_interface,
         ]
     )
     robot_description = {"robot_description": robot_description_content}
@@ -100,6 +113,11 @@ def generate_launch_description():
         "rl_policy_path": PathJoinSubstitution(
             [FindPackageShare(description_package), "config", "rl", rl_policy]
         )
+    }
+
+    controller_params = {
+        "network_interface": network_interface,
+        "enable_lowlevel_write": enable_lowlevel_write
     }
 
     controller_config_path = PathJoinSubstitution(
@@ -116,12 +134,13 @@ def generate_launch_description():
     control_node = Node(
         package="legged_ros2_control",
         executable="g1_node",
-        parameters=[controller_config_path, robot_description, rl_policy_path],
+        parameters=[controller_config_path, robot_description, rl_policy_path, controller_params],
         remappings=[
             ("~/robot_description", "/robot_description"),
         ],
         output="both",
     )
+
     robot_state_pub_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
@@ -129,14 +148,13 @@ def generate_launch_description():
         parameters=[robot_description],
     )
 
-    gui = LaunchConfiguration("gui")
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
         name="rviz2",
         output="log",
         arguments=["-d", rviz_config_file],
-        condition=IfCondition(gui),
+        condition=IfCondition(use_rviz),
     )
 
     joint_state_broadcaster_spawner = Node(
@@ -160,6 +178,7 @@ def generate_launch_description():
     rqt_controller_manager = Node(
         package="rqt_controller_manager",
         executable="rqt_controller_manager",
+        condition=IfCondition(use_rqt_cm),
     )
 
     # rqt_robot_steering = Node(

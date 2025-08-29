@@ -32,16 +32,18 @@ public:
         node_->get_parameter_or<float>("cmd_vel.scale.lin_vel_y", 1.0),
         node_->get_parameter_or<float>("cmd_vel.scale.ang_vel_z", 1.0)
       },
-      unitree_net_if_(node_->get_parameter_or<std::string>("network_interface", "lo")),
+      unitree_net_if_(node_->get_parameter_or<std::string>("network_interface", "")),
       controller_switch_client_(node_->create_client<controller_manager_msgs::srv::SwitchController>("controller_manager/switch_controller")),
       switch_controller_request_(std::make_shared<controller_manager_msgs::srv::SwitchController::Request>())
   {
     RCLCPP_INFO(node_->get_logger(), "Initializing Unitree node...");
+
     legged_control_->init();
 
     switch_controller_request_->strictness = controller_manager_msgs::srv::SwitchController::Request::BEST_EFFORT;
     wait_for_service();
 
+    RCLCPP_INFO(node_->get_logger(), "Unitree node try to connect in network interface: %s", unitree_net_if_.c_str());
     unitree::robot::ChannelFactory::Instance()->Init(0, unitree_net_if_);
     low_state_subscriber_ = std::make_shared<UnitreeSubscriberType>("rt/lowstate");
     RCLCPP_INFO(node_->get_logger(), "Unitree Node initialized with network interface: %s. Waiting for low state messages...", unitree_net_if_.c_str());

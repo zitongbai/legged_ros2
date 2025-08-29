@@ -62,6 +62,8 @@ protected:
   std::unique_ptr<g1::LowCmdPublisher> lowcmd_publisher_;
   std::shared_ptr<g1::LowStateSubscriber> lowstate_subscriber_;
 
+  bool enable_lowlevel_write_ = false; // if true, do not write lowcmd to robot
+
   uint8_t mode_machine_ = 0;  // G1 Type
 
 };

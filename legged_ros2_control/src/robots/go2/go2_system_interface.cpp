@@ -26,7 +26,14 @@ CallbackReturn Go2SystemInterface::on_init(const hardware_interface::HardwareInf
     return CallbackReturn::ERROR;
   }
 
-  network_interface_ = info_.hardware_parameters["network_interface"];
+  // create a node to read parameter
+  auto node = rclcpp::Node::make_shared("g1_system_interface", rclcpp::NodeOptions().automatically_declare_parameters_from_overrides(true));
+  network_interface_ = node->get_parameter_or<std::string>("network_interface", "");
+  enable_lowlevel_write_ = node->get_parameter_or<bool>("enable_lowlevel_write", true);
+
+  // debug print
+  RCLCPP_INFO(*logger_, "G1SystemInterface get param network interface: %s", network_interface_.c_str());
+  RCLCPP_INFO(*logger_, "G1SystemInterface get param low-level write: %s", enable_lowlevel_write_ ? "true" : "false");
 
   logger_ = std::make_shared<rclcpp::Logger>(
     rclcpp::get_logger("controller_manager.resource_manager.hardware_component.system.Go2SystemInterface"));
@@ -99,16 +106,19 @@ return_type Go2SystemInterface::write(const rclcpp::Time & /*time*/, const rclcp
 
   // Prepare low_cmd_
 
-  for(size_t i=0; i < joint_data_.size(); ++i) {
-    lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].q() = joint_data_[i].pos_cmd_;
-    lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].dq() = joint_data_[i].vel_cmd_;
-    lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].tau() = joint_data_[i].ff_cmd_;
-    lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].kp() = joint_data_[i].kp_;
-    lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].kd() = joint_data_[i].kd_;
-    lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].mode() = (0x01);   // motor switch to servo (PMSM) mode
+  if(enable_lowlevel_write_){
+    for(size_t i=0; i < joint_data_.size(); ++i) {
+      lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].q() = joint_data_[i].pos_cmd_;
+      lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].dq() = joint_data_[i].vel_cmd_;
+      lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].tau() = joint_data_[i].ff_cmd_;
+      lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].kp() = joint_data_[i].kp_;
+      lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].kd() = joint_data_[i].kd_;
+      lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].mode() = (0x01);   // motor switch to servo (PMSM) mode
+    }
+
+    lowcmd_publisher_->unlockAndPublish();
   }
 
-  lowcmd_publisher_->unlockAndPublish();
 
   return return_type::OK;
 }

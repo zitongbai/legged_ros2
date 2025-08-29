@@ -1,6 +1,5 @@
 unitree_node:
   ros__parameters:
-    network_interface: lo
     cmd_vel:
       scale:
         lin_vel_x: 0.5
