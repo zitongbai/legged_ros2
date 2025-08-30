@@ -149,6 +149,10 @@ return_type G1SystemInterface::write(const rclcpp::Time & /*time*/, const rclcpp
       lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].kp() = joint_data_[i].kp_;
       lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].kd() = joint_data_[i].kd_;
       lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].mode(1); // 1:Enable, 0:Disable
+
+      // record the desired position and velocity for reading
+      joint_data_[i].pos_des_ = joint_data_[i].pos_cmd_;
+      joint_data_[i].vel_des_ = joint_data_[i].vel_cmd_;
     }
 
     lowcmd_publisher_->unlockAndPublish();

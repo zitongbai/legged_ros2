@@ -72,6 +72,10 @@ std::vector<hardware_interface::StateInterface> LeggedSystemInterface::export_st
     state_interfaces.emplace_back(joint_data_[i].name, hardware_interface::HW_IF_POSITION, &joint_data_[i].pos_);
     state_interfaces.emplace_back(joint_data_[i].name, hardware_interface::HW_IF_VELOCITY, &joint_data_[i].vel_);
     state_interfaces.emplace_back(joint_data_[i].name, hardware_interface::HW_IF_EFFORT, &joint_data_[i].tau_);
+
+    // sometimes we need to read the desired position and velocity
+    state_interfaces.emplace_back(joint_data_[i].name, hardware_interface::HW_IF_POSITION_DES, &joint_data_[i].pos_des_);
+    state_interfaces.emplace_back(joint_data_[i].name, hardware_interface::HW_IF_VELOCITY_DES, &joint_data_[i].vel_des_);
   }
   
   // IMU interface

@@ -114,6 +114,10 @@ return_type Go2SystemInterface::write(const rclcpp::Time & /*time*/, const rclcp
       lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].kp() = joint_data_[i].kp_;
       lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].kd() = joint_data_[i].kd_;
       lowcmd_publisher_->msg_.motor_cmd()[joint_data_[i].adr].mode() = (0x01);   // motor switch to servo (PMSM) mode
+
+      // record the desired position and velocity for reading
+      joint_data_[i].pos_des_ = joint_data_[i].pos_cmd_;
+      joint_data_[i].vel_des_ = joint_data_[i].vel_cmd_;
     }
 
     lowcmd_publisher_->unlockAndPublish();

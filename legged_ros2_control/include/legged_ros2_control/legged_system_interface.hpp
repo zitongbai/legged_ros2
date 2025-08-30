@@ -37,6 +37,10 @@ namespace hardware_interface{
 constexpr char HW_IF_KP[] = "kp";
 /// Constant defining Kd interface
 constexpr char HW_IF_KD[] = "kd";
+/// Constant defining Desired Position interface
+constexpr char HW_IF_POSITION_DES[] = "position_des";
+/// Constant defining Desired Velocity interface
+constexpr char HW_IF_VELOCITY_DES[] = "velocity_des";
 }
 
 
@@ -50,6 +54,7 @@ struct JointData{
   double kp_, kd_;
   double tau_range_[2]; // min, max torque range
   int adr; // index in sdk or sim
+  double pos_des_, vel_des_; // desired position and velocity, used for reading
 };
 
 struct ImuData{
