@@ -30,7 +30,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "rl_policy", 
-            default_value="policy.onnx",
+            default_value="policy_gym.onnx",
             description="RL policy file. This file is exported by IsaacLab automatically \
                         when playing the policy.",
         )
@@ -38,7 +38,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "controller_config", 
-            default_value="ros2_controller.yaml",
+            default_value="ros2_controller_gym.yaml",
             description="Controller configuration file.",
         )
     )

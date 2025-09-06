@@ -3,9 +3,9 @@ unitree_node:
     network_interface: lo
     cmd_vel:
       scale:
-        lin_vel_x: 0.5
-        lin_vel_y: 0.5
-        ang_vel_z: 0.5
+        lin_vel_x: 1.0
+        lin_vel_y: 0.8
+        ang_vel_z: 1.0
 
 # ------------------------------------------------------------
 # The following configurations are for the ROS 2 controller
