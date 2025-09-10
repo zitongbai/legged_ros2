@@ -45,6 +45,11 @@ struct ArticulationData
             std::array<float, 2U> lin_vel_y = {0.0f, 0.0f};
             std::array<float, 2U> ang_vel_z = {0.0f, 0.0f};
         } range;
+        // only for jump task. TODO: create it other where
+        float start_jump_time;
+        bool jump_cmd;
+        bool last_jump_cmd;
+        float jump_distance;
     } command;
 };
 

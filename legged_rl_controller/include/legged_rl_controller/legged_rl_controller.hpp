@@ -21,6 +21,7 @@
 #include "legged_rl_controller/legged_rl_controller_parameters.hpp"
 #include "legged_rl_controller/isaaclab/envs/manager_based_rl_env.h"
 #include "legged_rl_controller/legged_articulation.hpp"
+#include "legged_rl_controller/isaaclab/assets/articulation/articulation.h"
 
 namespace legged
 {
@@ -43,7 +44,7 @@ public:
   controller_interface::CallbackReturn on_deactivate(
     const rclcpp_lifecycle::State & previous_state) override;
 
-private:
+protected:
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_sub_;
   using TwistMsgSharedPtr = std::shared_ptr<geometry_msgs::msg::Twist>;
   using CmdBuffer = realtime_tools::RealtimeBuffer<TwistMsgSharedPtr>;
@@ -53,17 +54,15 @@ private:
   std::shared_ptr<legged_rl_controller::ParamListener> param_listener_;
   legged_rl_controller::Params params_;
   void update_parameters_();
-  controller_interface::CallbackReturn configure_parameters_();
+  virtual controller_interface::CallbackReturn configure_parameters_();
 
   // Fall detection
   bool detect_fall_();
   
-  std::shared_ptr<LeggedArticulation> robot_;
+  std::shared_ptr<isaaclab::Articulation> robot_;
   isaaclab::ManagerBasedRLEnvCfg env_cfg_;
   std::unique_ptr<isaaclab::ManagerBasedRLEnv> env_;
   std::string rl_policy_path_;
-
-
 };
 
 

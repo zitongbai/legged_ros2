@@ -10,6 +10,10 @@
 #include "legged_rl_controller/isaaclab/assets/articulation/articulation.h"
 #include "legged_rl_controller/isaaclab/algorithms/algorithms.h"
 #include <iostream>
+#include <unordered_map>
+#include <any>
+#include <optional>
+#include <stdexcept>
 
 namespace isaaclab
 {
@@ -28,14 +32,46 @@ struct ManagerBasedRLEnvCfg{
         std::array<float, 2U> lin_vel_y = {0.0f, 0.0f};
         std::array<float, 2U> ang_vel_z = {0.0f, 0.0f};
     } command_velocity_range;
+
+    // 新增：扩展属性包
+    std::unordered_map<std::string, std::any> extras;
+
+    // 设置扩展值
+    template<typename T>
+    void set_extra(const std::string &key, T value) {
+        extras[key] = std::any(std::move(value));
+    }
+
+    // 获取扩展值（如果不存在或类型不匹配返回 std::nullopt）
+    template<typename T>
+    std::optional<T> get_extra(const std::string &key) const {
+        auto it = extras.find(key);
+        if (it == extras.end()) return std::nullopt;
+        try {
+            return std::any_cast<T>(it->second);
+        } catch (const std::bad_any_cast&) {
+            return std::nullopt;
+        }
+    }
+
+    // 是否存在扩展键
+    bool has_extra(const std::string &key) const {
+        return extras.find(key) != extras.end();
+    }
+
+    // 删除扩展键
+    void remove_extra(const std::string &key) {
+        extras.erase(key);
+    }
+
 };
 
 class ManagerBasedRLEnv
 {
 public:
     // Constructor
-    ManagerBasedRLEnv(ManagerBasedRLEnvCfg cfg, std::shared_ptr<Articulation> robot_)
-    : robot(std::move(robot_))
+    ManagerBasedRLEnv(ManagerBasedRLEnvCfg cfg_, std::shared_ptr<Articulation> robot_)
+    : cfg(std::move(cfg_)), robot(std::move(robot_))
     {
         // Parse configuration
         robot->data.joint_pos.resize(cfg.default_joint_pos.size());
@@ -71,24 +107,28 @@ public:
         robot->update();
         global_phase = 0;
         episode_length = 0;
+        episode_length_s = 0;
         action_manager->reset();
         observation_manager->reset();
     }
 
-    void step()
+    void step(double period)
     {
         episode_length += 1;
+        episode_length_s += period;
         robot->update();
         auto obs = observation_manager->compute();
         auto action = alg->act(obs);
         action_manager->process_action(action);
     }
 
+    ManagerBasedRLEnvCfg cfg;
     std::unique_ptr<ObservationManager> observation_manager;
     std::unique_ptr<ActionManager> action_manager;
     std::shared_ptr<Articulation> robot;
     std::unique_ptr<Algorithms> alg;
     long episode_length = 0;
+    double episode_length_s = 0;
     float global_phase = 0.0f;
 };
 

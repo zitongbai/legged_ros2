@@ -62,6 +62,39 @@ REGISTER_OBSERVATION(velocity_commands)
     return obs;
 }
 
+REGISTER_OBSERVATION(jump_phase)
+{
+    std::vector<float> obs(1);
+    
+    if(!env->cfg.has_extra("jump_duration")) {
+        throw std::runtime_error("Observation term 'jump_phase' requires 'jump_duration' in env cfg extras.");
+    }
+
+    if(!env->robot->data.command.jump_cmd) {
+        obs[0] = 0.0f;
+        return obs;
+    }
+
+    float jump_duration = env->cfg.get_extra<double>("jump_duration").value_or(1.0);
+    if(env->robot->data.command.jump_cmd && !env->robot->data.command.last_jump_cmd) {
+        std::cout << "Jump command detected at time: " << env->episode_length_s << "s" << std::endl;
+        env->robot->data.command.start_jump_time = env->episode_length_s;
+    }
+
+    float phase = (env->episode_length_s - env->robot->data.command.start_jump_time) / jump_duration;
+    obs[0] = std::clamp(phase, 0.0f, 1.0f);
+
+    return obs;
+}
+
+REGISTER_OBSERVATION(jump_distance)
+{
+    std::vector<float> obs(1);
+    obs[0] = env->robot->data.command.jump_distance;
+    return obs;
+}
+
+
 // REGISTER_OBSERVATION(gait_phase)
 // {
 //     float period = env->cfg["observations"]["gait_phase"]["params"]["period"].as<float>();

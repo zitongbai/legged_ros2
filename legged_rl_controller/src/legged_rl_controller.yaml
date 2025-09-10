@@ -14,6 +14,11 @@ legged_rl_controller:
     default_value: [],
     description: Joint names used for RL actions.
   }
+  jump_duration: {
+    type: double,
+    default_value: 1.0,
+    description: (Only for jump motion) Duration of the jump in seconds.
+  }
   obs_names: {
     type: string_array,
     default_value: [],

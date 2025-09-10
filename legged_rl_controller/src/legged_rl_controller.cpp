@@ -98,7 +98,7 @@ controller_interface::CallbackReturn LeggedRLController::on_deactivate(const rcl
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::return_type LeggedRLController::update(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/){
+controller_interface::return_type LeggedRLController::update(const rclcpp::Time & /*time*/, const rclcpp::Duration & period){
 
   // fall detection
   if (detect_fall_()) {
@@ -114,7 +114,7 @@ controller_interface::return_type LeggedRLController::update(const rclcpp::Time 
     return controller_interface::return_type::ERROR;
   }
 
-  env_->step();
+  env_->step(period.seconds());
   auto action = env_->action_manager->processed_actions();
 
   joint_interface_->set_joint_command(

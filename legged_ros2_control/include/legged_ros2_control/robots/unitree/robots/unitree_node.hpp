@@ -11,6 +11,8 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include "std_msgs/msg/bool.hpp"
+#include "std_msgs/msg/float32.hpp"
 #include "controller_manager_msgs/srv/switch_controller.hpp"
 
 #include "legged_ros2_control/legged_ros2_control.hpp"
@@ -34,7 +36,11 @@ public:
       },
       unitree_net_if_(node_->get_parameter_or<std::string>("network_interface", "")),
       controller_switch_client_(node_->create_client<controller_manager_msgs::srv::SwitchController>("controller_manager/switch_controller")),
-      switch_controller_request_(std::make_shared<controller_manager_msgs::srv::SwitchController::Request>())
+      switch_controller_request_(std::make_shared<controller_manager_msgs::srv::SwitchController::Request>()),
+      jump_cmd_pub_(node_->create_publisher<std_msgs::msg::Bool>("jump_cmd", rclcpp::SystemDefaultsQoS())),
+      jump_cmd_msg_(),
+      jump_dist_pub_(node_->create_publisher<std_msgs::msg::Float32>("jump_distance", rclcpp::SystemDefaultsQoS())),
+      jump_dist_msg_()
   {
     RCLCPP_INFO(node_->get_logger(), "Initializing Unitree node...");
 
@@ -49,6 +55,8 @@ public:
     RCLCPP_INFO(node_->get_logger(), "Unitree Node initialized with network interface: %s. Waiting for low state messages...", unitree_net_if_.c_str());
     low_state_subscriber_->wait_for_connection();
     RCLCPP_INFO(node_->get_logger(), "Unitree Node is ready to run.");
+
+    jump_dist_msg_.data = 0.35; // default jump distance
   }
 
   void run() {
@@ -94,6 +102,26 @@ private:
     } else if (low_state_subscriber_->joystick.Y.on_pressed && 
         low_state_subscriber_->joystick.LB.pressed) {
       set_controller_switch({}, {"rl_controller", "static_controller"}, "Switched to Joint State Broadcaster only.");
+    } else if (low_state_subscriber_->joystick.X.on_pressed && 
+        low_state_subscriber_->joystick.LB.pressed) {
+      jump_cmd_msg_.data = true;
+      jump_cmd_pub_->publish(jump_cmd_msg_);
+      RCLCPP_INFO(node_->get_logger(), "Jump command published.");
+    } else if (low_state_subscriber_->joystick.X.on_pressed && 
+        low_state_subscriber_->joystick.RB.pressed) {
+      jump_cmd_msg_.data = false;
+      jump_cmd_pub_->publish(jump_cmd_msg_);
+      RCLCPP_INFO(node_->get_logger(), "Jump command published.");
+    } else if (low_state_subscriber_->joystick.up.on_pressed) {
+      jump_dist_msg_.data += delta_dist_;
+      if (jump_dist_msg_.data > max_dist_) jump_dist_msg_.data = max_dist_;
+      jump_dist_pub_->publish(jump_dist_msg_);
+      RCLCPP_INFO(node_->get_logger(), "Jump distance increased to: %.2f", jump_dist_msg_.data);
+    } else if (low_state_subscriber_->joystick.down.on_pressed) {
+      jump_dist_msg_.data -= delta_dist_;
+      if (jump_dist_msg_.data < min_dist_) jump_dist_msg_.data = min_dist_;
+      jump_dist_pub_->publish(jump_dist_msg_);
+      RCLCPP_INFO(node_->get_logger(), "Jump distance decreased to: %.2f", jump_dist_msg_.data);
     }
   }
 
@@ -119,6 +147,14 @@ private:
   std::shared_ptr<UnitreeSubscriberType> low_state_subscriber_;
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr controller_switch_client_;
   std::shared_ptr<controller_manager_msgs::srv::SwitchController::Request> switch_controller_request_;
+  
+  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr jump_cmd_pub_;
+  std_msgs::msg::Bool jump_cmd_msg_;
+  rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr jump_dist_pub_;
+  std_msgs::msg::Float32 jump_dist_msg_;
+  float delta_dist_ = 0.05; // distance increment for each button press
+  float min_dist_ = 0.35;
+  float max_dist_ = 0.8;
 };
 
 }

@@ -33,6 +33,7 @@ generate_parameter_library(
 
 add_library(legged_rl_controller SHARED
   src/legged_rl_controller.cpp
+  src/legged_jump_controller.cpp
 )
 target_compile_features(legged_rl_controller PUBLIC c_std_99 cxx_std_17)
 target_include_directories(legged_rl_controller PUBLIC
