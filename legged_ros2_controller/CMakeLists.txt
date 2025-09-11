@@ -28,6 +28,7 @@ add_library(legged_ros2_controller SHARED
   src/legged_ros2_controller.cpp
   src/separate_joint_controller.cpp
   src/static_controller.cpp
+  src/random_traj_controller.cpp
 )
 target_compile_features(legged_ros2_controller PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 target_include_directories(legged_ros2_controller PUBLIC

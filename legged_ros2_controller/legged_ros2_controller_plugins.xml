@@ -20,4 +20,11 @@
       This controller manages static control for legged robots.
     </description>
   </class>
+  <class name="legged_ros2_controller/RandomTrajController"
+         type="legged::RandomTrajController"
+         base_class_type="controller_interface::ControllerInterface">
+    <description>
+      This controller manages random trajectory control for legged robots.
+    </description>
+  </class>
 </library>

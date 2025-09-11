@@ -1,0 +1,118 @@
+unitree_node:
+  ros__parameters:
+    network_interface: lo
+    cmd_vel:
+      scale:
+        lin_vel_x: 1.0
+        lin_vel_y: 0.8
+        ang_vel_z: 1.0
+
+
+# ------------------------------------------------------------
+# The following configurations are for the ROS 2 controller
+# ------------------------------------------------------------
+controller_manager:
+  ros__parameters:
+    update_rate: 1000  # Hz
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    rand_traj_controller:
+      type: legged_ros2_controller/RandomTrajController
+
+joint_state_broadcaster:
+  ros__parameters:
+    update_rate: 250
+    joints: [
+      'FL_hip_joint', 
+      'FL_thigh_joint', 
+      'FL_calf_joint', 
+      'FR_hip_joint', 
+      'FR_thigh_joint', 
+      'FR_calf_joint', 
+      'RL_hip_joint', 
+      'RL_thigh_joint', 
+      'RL_calf_joint', 
+      'RR_hip_joint', 
+      'RR_thigh_joint', 
+      'RR_calf_joint'
+    ]
+    interfaces:
+      - position
+      - velocity
+      - effort
+      - position_des
+      - velocity_des
+
+rand_traj_controller:
+  ros__parameters:
+    update_rate: 50
+    traj_time: 5.0  # Time of joint trajectory in seconds
+    joint_names: [
+      'FL_hip_joint', 
+      'FL_thigh_joint', 
+      'FL_calf_joint', 
+      'FR_hip_joint', 
+      'FR_thigh_joint', 
+      'FR_calf_joint', 
+      'RL_hip_joint', 
+      'RL_thigh_joint', 
+      'RL_calf_joint', 
+      'RR_hip_joint', 
+      'RR_thigh_joint', 
+      'RR_calf_joint'
+    ]
+    joint_cfg:
+      FL_hip_joint:
+        kp: 25.0
+        kd: 0.5
+        default_pos: 0.10000000149011612
+      FR_hip_joint:
+        kp: 25.0
+        kd: 0.5
+        default_pos: -0.10000000149011612
+      RL_hip_joint:
+        kp: 25.0
+        kd: 0.5
+        default_pos: 0.10000000149011612
+      RR_hip_joint:
+        kp: 25.0
+        kd: 0.5
+        default_pos: -0.10000000149011612
+      FL_thigh_joint:
+        kp: 25.0
+        kd: 0.5
+        default_pos: 0.800000011920929
+      FR_thigh_joint:
+        kp: 25.0
+        kd: 0.5
+        default_pos: 0.800000011920929
+      RL_thigh_joint:
+        kp: 25.0
+        kd: 0.5
+        default_pos: 1.0
+      RR_thigh_joint:
+        kp: 25.0
+        kd: 0.5
+        default_pos: 1.0
+      FL_calf_joint:
+        kp: 25.0
+        kd: 0.5
+        default_pos: -1.5
+      FR_calf_joint:
+        kp: 25.0
+        kd: 0.5
+        default_pos: -1.5
+      RL_calf_joint:
+        kp: 25.0
+        kd: 0.5
+        default_pos: -1.5
+      RR_calf_joint:
+        kp: 25.0
+        kd: 0.5
+        default_pos: -1.5
+
+
+
+
