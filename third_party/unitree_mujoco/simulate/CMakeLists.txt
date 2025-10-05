@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 project(unitree_mujoco)
 
+option(BUILD_UNITREE "Build Unitree related targets" OFF)
+if(BUILD_UNITREE)
+
 enable_language(C)
 enable_language(CXX)
 set(CMAKE_CXX_STANDARD 17)
@@ -68,3 +71,4 @@ install(DIRECTORY config launch ../unitree_robots
 
 ament_package()
 
+endif() # if(BUILD_UNITREE)

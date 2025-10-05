@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.8)
 project(legged_ros2_control)
 
+option(BUILD_UNITREE "Build Unitree related targets" OFF)
+
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -36,10 +38,6 @@ else()
   Either build and install mujoco from source or set the MUJOCO_DIR environment variable to tell CMake where to find the binary install. ")
 endif()
 
-# Try to find Unitree SDK2 lib
-list(APPEND CMAKE_PREFIX_PATH "/opt/unitree_robotics/lib/cmake")
-find_package(unitree_sdk2 REQUIRED)
-
 set(THIS_PACKAGE_DEPENDS
   ament_cmake
   rclcpp
@@ -51,6 +49,10 @@ set(THIS_PACKAGE_DEPENDS
   rosgraph_msgs
   geometry_msgs
 )
+
+# ------------------------------------------------------------
+# Legged system interface
+# ------------------------------------------------------------
 
 add_library(legged_system_interface src/legged_system_interface.cpp)
 target_compile_features(legged_system_interface PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
@@ -64,11 +66,13 @@ ament_target_dependencies(
   "pluginlib"
   "rclcpp_lifecycle"
 )
-
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(legged_system_interface PRIVATE "LEGGED_ROS2_CONTROL_BUILDING_LIBRARY")
 
+# ------------------------------------------------------------
+# Mujoco system interface
+# ------------------------------------------------------------
 
 add_library(mujoco_system_interface SHARED src/mujoco/mujoco_system_interface.cpp)
 target_compile_features(mujoco_system_interface PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
@@ -80,22 +84,9 @@ target_include_directories(mujoco_system_interface PUBLIC
 ament_target_dependencies(mujoco_system_interface ${THIS_PACKAGE_DEPENDS})
 target_link_libraries(mujoco_system_interface ${MUJOCO_LIB} legged_system_interface)
 
-
-add_library(unitree_system_interface SHARED 
-  src/robots/g1/g1_system_interface.cpp
-  src/robots/go2/go2_system_interface.cpp
-)
-target_compile_features(unitree_system_interface PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-target_include_directories(unitree_system_interface PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
-ament_target_dependencies(unitree_system_interface ${THIS_PACKAGE_DEPENDS})
-target_link_libraries(unitree_system_interface unitree_sdk2 legged_system_interface)
-
-# Export hardware plugins
-pluginlib_export_plugin_description_file(legged_ros2_control legged_ros2_control_plugins.xml)
-
+# ------------------------------------------------------------
+# Mujoco ros2 node
+# ------------------------------------------------------------
 
 add_executable(mujoco_node
   src/mujoco/mujoco_node.cpp
@@ -117,8 +108,20 @@ target_link_libraries(mujoco_node
   glfw
 )
 
-add_subdirectory(src/robots/g1)
-add_subdirectory(src/robots/go2)
+# ------------------------------------------------------------
+# Interface for Unitree robots
+# ------------------------------------------------------------
+
+if(BUILD_UNITREE)
+  add_subdirectory(src/robots/unitree)
+endif()
+
+# ------------------------------------------------------------
+# Installation
+# ------------------------------------------------------------
+
+# Export hardware plugins
+pluginlib_export_plugin_description_file(legged_ros2_control legged_ros2_control_plugins.xml)
 
 install(
   DIRECTORY include/
@@ -138,20 +141,8 @@ install(
   RUNTIME DESTINATION bin
 )
 install(
-  TARGETS unitree_system_interface
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
-install(
   TARGETS mujoco_node
   DESTINATION lib/${PROJECT_NAME}
-)
-
-
-install(
-  DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)

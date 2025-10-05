@@ -2,8 +2,8 @@ find_package(fmt REQUIRED)
 
 add_executable(g1_node
   g1_node.cpp
-  ../../legged_ros2_control.cpp
-  ../../legged_system_interface.cpp
+  ../../../legged_ros2_control.cpp
+  ../../../legged_system_interface.cpp
 )
 target_compile_features(g1_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 target_include_directories(g1_node PUBLIC
