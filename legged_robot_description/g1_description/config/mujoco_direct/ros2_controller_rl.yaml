@@ -1,0 +1,427 @@
+# ------------------------------------------------------------
+# The following configurations are for the ROS 2 controller
+# ------------------------------------------------------------
+controller_manager:
+  ros__parameters:
+    update_rate: 1000  # Hz
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    static_controller:
+      type: legged_ros2_controller/StaticController
+
+    rl_controller:
+      type: legged_rl_controller/LeggedRLController
+
+
+static_controller:
+  ros__parameters:
+    traj_time: 5.0  # Time of joint trajectory in seconds
+    joint_names:
+      - left_hip_pitch_joint
+      - right_hip_pitch_joint
+      - waist_yaw_joint
+      - left_hip_roll_joint
+      - right_hip_roll_joint
+      - left_shoulder_pitch_joint
+      - right_shoulder_pitch_joint
+      - left_hip_yaw_joint
+      - right_hip_yaw_joint
+      - left_shoulder_roll_joint
+      - right_shoulder_roll_joint
+      - left_knee_joint
+      - right_knee_joint
+      - left_shoulder_yaw_joint
+      - right_shoulder_yaw_joint
+      - left_ankle_pitch_joint
+      - right_ankle_pitch_joint
+      - left_elbow_joint
+      - right_elbow_joint
+      - left_ankle_roll_joint
+      - right_ankle_roll_joint
+      - left_wrist_roll_joint
+      - right_wrist_roll_joint
+      - left_wrist_pitch_joint
+      - right_wrist_pitch_joint
+      - left_wrist_yaw_joint
+      - right_wrist_yaw_joint
+    joint_cfg:
+      left_hip_pitch_joint:
+        kp: 100.0
+        kd: 2.0
+        default_pos: -0.10000000149011612
+      right_hip_pitch_joint:
+        kp: 100.0
+        kd: 2.0
+        default_pos: -0.10000000149011612
+      waist_yaw_joint:
+        kp: 200.0
+        kd: 5.0
+        default_pos: 0.0
+      left_hip_roll_joint:
+        kp: 100.0
+        kd: 2.0
+        default_pos: 0.0
+      right_hip_roll_joint:
+        kp: 100.0
+        kd: 2.0
+        default_pos: 0.0
+      left_shoulder_pitch_joint:
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.30000001192092896
+      right_shoulder_pitch_joint:
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.30000001192092896
+      left_hip_yaw_joint:
+        kp: 100.0
+        kd: 2.0
+        default_pos: 0.0
+      right_hip_yaw_joint:
+        kp: 100.0
+        kd: 2.0
+        default_pos: 0.0
+      left_shoulder_roll_joint:
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.25
+      right_shoulder_roll_joint:
+        kp: 40.0
+        kd: 10.0
+        default_pos: -0.25
+      left_knee_joint:
+        kp: 150.0
+        kd: 4.0
+        default_pos: 0.30000001192092896
+      right_knee_joint:
+        kp: 150.0
+        kd: 4.0
+        default_pos: 0.30000001192092896
+      left_shoulder_yaw_joint:
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.0
+      right_shoulder_yaw_joint:
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.0
+      left_ankle_pitch_joint:
+        kp: 40.0
+        kd: 2.0
+        default_pos: -0.20000000298023224
+      right_ankle_pitch_joint:
+        kp: 40.0
+        kd: 2.0
+        default_pos: -0.20000000298023224
+      left_elbow_joint:
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.9700000286102295
+      right_elbow_joint:
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.9700000286102295
+      left_ankle_roll_joint:
+        kp: 40.0
+        kd: 2.0
+        default_pos: 0.0
+      right_ankle_roll_joint:
+        kp: 40.0
+        kd: 2.0
+        default_pos: 0.0
+      left_wrist_roll_joint:
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.15000000596046448
+      right_wrist_roll_joint:
+        kp: 40.0
+        kd: 10.0
+        default_pos: -0.15000000596046448
+      left_wrist_pitch_joint:
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.0
+      right_wrist_pitch_joint:
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.0
+      left_wrist_yaw_joint:
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.0
+      right_wrist_yaw_joint:
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.0
+
+
+rl_controller:
+  ros__parameters:
+    update_rate: 50
+    imu_names:  # only use one imu for RL observation
+      - imu-pelvis # refer to ros2 control xacro file
+    range_lin_vel_x: [-1.0, 1.0]
+    range_lin_vel_y: [-1.0, 1.0]
+    range_ang_vel_z: [-1.0, 1.0]
+    
+    # The following parameters are exported in legged lab, it is 
+    # not recommended to change them manually.
+    obs_names:
+      - base_ang_vel
+      - projected_gravity
+      - velocity_commands
+      - joint_pos
+      - joint_vel
+      - actions
+    obs_cfg:
+      base_ang_vel:
+        clip:
+        - 0.0
+        scale: 0.20000000298023224
+        history_length: 5
+      projected_gravity:
+        clip:
+        - 0.0
+        scale: 1.0
+        history_length: 5
+      velocity_commands:
+        clip:
+        - 0.0
+        scale: 1.0
+        history_length: 5
+      joint_pos:
+        clip:
+        - 0.0
+        scale: 1.0
+        history_length: 5
+      joint_vel:
+        clip:
+        - 0.0
+        scale: 0.05000000074505806
+        history_length: 5
+      actions:
+        clip:
+        - 0.0
+        scale: 1.0
+        history_length: 5
+    joint_names:
+      - left_hip_pitch_joint
+      - right_hip_pitch_joint
+      - waist_yaw_joint
+      - left_hip_roll_joint
+      - right_hip_roll_joint
+      - left_shoulder_pitch_joint
+      - right_shoulder_pitch_joint
+      - left_hip_yaw_joint
+      - right_hip_yaw_joint
+      - left_shoulder_roll_joint
+      - right_shoulder_roll_joint
+      - left_knee_joint
+      - right_knee_joint
+      - left_shoulder_yaw_joint
+      - right_shoulder_yaw_joint
+      - left_ankle_pitch_joint
+      - right_ankle_pitch_joint
+      - left_elbow_joint
+      - right_elbow_joint
+      - left_ankle_roll_joint
+      - right_ankle_roll_joint
+      - left_wrist_roll_joint
+      - right_wrist_roll_joint
+      - left_wrist_pitch_joint
+      - right_wrist_pitch_joint
+      - left_wrist_yaw_joint
+      - right_wrist_yaw_joint
+    action_cfg:
+      left_hip_pitch_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 100.0
+        kd: 2.0
+        default_pos: -0.10000000149011612
+      right_hip_pitch_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 100.0
+        kd: 2.0
+        default_pos: -0.10000000149011612
+      waist_yaw_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 200.0
+        kd: 5.0
+        default_pos: 0.0
+      left_hip_roll_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 100.0
+        kd: 2.0
+        default_pos: 0.0
+      right_hip_roll_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 100.0
+        kd: 2.0
+        default_pos: 0.0
+      left_shoulder_pitch_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.30000001192092896
+      right_shoulder_pitch_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.30000001192092896
+      left_hip_yaw_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 100.0
+        kd: 2.0
+        default_pos: 0.0
+      right_hip_yaw_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 100.0
+        kd: 2.0
+        default_pos: 0.0
+      left_shoulder_roll_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.25
+      right_shoulder_roll_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 10.0
+        default_pos: -0.25
+      left_knee_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 150.0
+        kd: 4.0
+        default_pos: 0.30000001192092896
+      right_knee_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 150.0
+        kd: 4.0
+        default_pos: 0.30000001192092896
+      left_shoulder_yaw_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.0
+      right_shoulder_yaw_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.0
+      left_ankle_pitch_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 2.0
+        default_pos: -0.20000000298023224
+      right_ankle_pitch_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 2.0
+        default_pos: -0.20000000298023224
+      left_elbow_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.9700000286102295
+      right_elbow_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.9700000286102295
+      left_ankle_roll_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 2.0
+        default_pos: 0.0
+      right_ankle_roll_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 2.0
+        default_pos: 0.0
+      left_wrist_roll_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.15000000596046448
+      right_wrist_roll_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 10.0
+        default_pos: -0.15000000596046448
+      left_wrist_pitch_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.0
+      right_wrist_pitch_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.0
+      left_wrist_yaw_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.0
+      right_wrist_yaw_joint:
+        clip:
+        - 0.0
+        scale: 0.25
+        kp: 40.0
+        kd: 10.0
+        default_pos: 0.0
+
