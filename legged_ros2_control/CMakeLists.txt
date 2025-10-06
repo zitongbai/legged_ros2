@@ -10,7 +10,9 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_ros REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclpy REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
@@ -117,6 +119,17 @@ if(BUILD_UNITREE)
 endif()
 
 # ------------------------------------------------------------
+# Install Python modules
+# ------------------------------------------------------------
+
+ament_python_install_package(${PROJECT_NAME})
+# Install Python executables
+install(PROGRAMS
+  src/legged_teleop_keyboard.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+# ------------------------------------------------------------
 # Installation
 # ------------------------------------------------------------
 
@@ -144,6 +157,11 @@ install(
   TARGETS mujoco_node
   DESTINATION lib/${PROJECT_NAME}
 )
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

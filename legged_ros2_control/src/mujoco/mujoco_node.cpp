@@ -45,6 +45,7 @@ int main(int argc, const char **argv)
   mujoco_model = mj_loadXML(model_path.c_str(), nullptr, error, 1000);
   if (!mujoco_model)
   {
+    RCLCPP_ERROR_STREAM(node->get_logger(), "Load model error: " << error);
     mju_error("Load model error: %s", error);
   }
 
