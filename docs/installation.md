@@ -21,7 +21,7 @@ Before building `legged_ros2`, make sure you have installed the following depend
 The framework is based on the ROS2 Control, install the core packages:
 
 ```bash
-sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers
+sudo apt install ros-humble-ros2-control ros-humble-ros2-controllers ros-humble-rqt-controller-manager
 ```
 
 🔧 **Mujoco** 
@@ -112,6 +112,21 @@ export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 # To avoid conflict with Unitree SDK2's DDS Communication:
 export ROS_DOMAIN_ID=10 # or other number you like, except 0
 ```
+</details>
+
+
+<details>
+<summary><strong>Unitree Robot Mesh (Optional)</strong></summary>
+
+If you want to simulate Unitree robots, you need to download the robot mesh files. Refer to the Unitree official repository and copy then to the following path:
+
+```
+legged_ros2/legged_robot_description/g1_description/meshes
+legged_ros2/legged_robot_description/go2_description/dae
+legged_ros2/legged_robot_description/go2_description/meshes
+legged_ros2/legged_robot_description/go2_description/mjcf/assets
+```
+
 </details>
 
 
