@@ -4,6 +4,7 @@ import time
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
+from std_msgs.msg import Bool, Float64
 from controller_manager_msgs.srv import SwitchController
 import pygame
 
@@ -35,6 +36,10 @@ class TeleopKeyboard(Node):
         self.switch_controller_request = SwitchController.Request()
         self.switch_controller_request.strictness = SwitchController.Request.BEST_EFFORT
 
+        # For elastic band control
+        self.elastic_band_enable_pub = self.create_publisher(Bool, 'elastic_band/enable', 10)
+        self.elastic_band_adjust_pub = self.create_publisher(Float64, 'elastic_band/adjust_length', 10)
+
     def handle_keydown(self, key):
         # 调整速度步长（立即生效）
         if key == pygame.K_i:
@@ -61,7 +66,8 @@ class TeleopKeyboard(Node):
             self.ang_z = max(0.0, self.ang_z - self.step_ang_z)
             self.get_logger().info(f'ang_z decreased to {self.ang_z:.3f}')
             return
-        
+
+        # Controller switching
         if key == pygame.K_1:
             self.set_controller_switch(
                 start_controllers=[],
@@ -79,6 +85,32 @@ class TeleopKeyboard(Node):
                 start_controllers=['rl_controller'],
                 stop_controllers=['static_controller']
             )
+            return
+        
+        # Elastic band control
+        if key == pygame.K_z:
+            msg = Bool()
+            msg.data = True
+            self.elastic_band_enable_pub.publish(msg)
+            self.get_logger().info('Elastic band enabled')
+            return
+        if key == pygame.K_x:
+            msg = Bool()
+            msg.data = False
+            self.elastic_band_enable_pub.publish(msg)
+            self.get_logger().info('Elastic band disabled')
+            return
+        if key == pygame.K_c:
+            msg = Float64()
+            msg.data = 0.1  # 增加长度
+            self.elastic_band_adjust_pub.publish(msg)
+            self.get_logger().info('Elastic band length increased by 0.1')
+            return
+        if key == pygame.K_v:
+            msg = Float64()
+            msg.data = -0.1  # 减少长度
+            self.elastic_band_adjust_pub.publish(msg)
+            self.get_logger().info('Elastic band length decreased by 0.1')
             return
 
         # 方向按键，加入集合

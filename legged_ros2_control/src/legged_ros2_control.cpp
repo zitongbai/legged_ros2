@@ -28,6 +28,7 @@ LeggedRos2Control::LeggedRos2Control(rclcpp::Node::SharedPtr node) :
 LeggedRos2Control::~LeggedRos2Control()
 {
   cm_executor_->remove_node(controller_manager_);
+  cm_executor_->remove_node(node_);  // 同时移除 node_
   cm_executor_->cancel();
 
   if (cm_thread_.joinable()) cm_thread_.join();
@@ -115,6 +116,7 @@ void LeggedRos2Control::init()
   controller_manager_ = std::make_shared<controller_manager::ControllerManager>(
     std::move(resource_manager), cm_executor_, manager_node_name, node_->get_namespace());
   cm_executor_->add_node(controller_manager_);
+  cm_executor_->add_node(node_);
   
   const bool use_sim_time = controller_manager_->get_parameter_or<bool>("use_sim_time", false);
   RCLCPP_INFO(

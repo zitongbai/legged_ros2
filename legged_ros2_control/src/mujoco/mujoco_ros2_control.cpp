@@ -15,6 +15,26 @@ namespace legged {
 
 void MujocoRos2Control::update(const rclcpp::Time &time, const rclcpp::Duration &period)
 {
+  if(elastic_band_.is_enabled()){
+    std::vector<double> pos(3);
+    std::vector<double> vel(3);
+    for(int i=0; i<3; ++i){
+      pos[i] = mj_data_->qpos[i];
+      vel[i] = mj_data_->qvel[i];
+    }
+    elastic_band_.compute_force(pos, vel);
+    const auto & force = elastic_band_.force();
+    // apply the force to the body
+    for(int i=0; i<3; ++i){
+      mj_data_->qfrc_applied[i] = force[i];
+    }
+  } else {
+    // clear the applied force
+    for(int i=0; i<3; ++i){
+      mj_data_->qfrc_applied[i] = 0.0;
+    }
+  }
+
   mj_step1(mj_model_, mj_data_);
 
   LeggedRos2Control::update(time, period);
