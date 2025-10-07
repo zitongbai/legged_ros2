@@ -85,8 +85,8 @@ private:
   double stiffness_;
   double damping_;
 
-  std::vector<double> hang_point_ = {0, 0, 3}; // fixed point of the elastic band
-  double length_ = 0.0;
+  std::vector<double> hang_point_ = {0, 0, 6.0}; // fixed point of the elastic band
+  double length_ = 2.0;
   bool enable_ = true;
   std::vector<double> force_ = {0, 0, 0};
 };
@@ -115,6 +115,8 @@ public:
           RCLCPP_INFO(node_->get_logger(), "Elastic band length is adjusted to: %.3f", elastic_band_.length());
         });
 
+    hang_link_ = node_->get_parameter_or<std::string>("hang_link", "");
+
     RCLCPP_INFO(node_->get_logger(), "MujocoRos2Control created.");
   }
 
@@ -132,6 +134,7 @@ protected:
   mjData *mj_data_;
   
   ElasticBand elastic_band_ = ElasticBand();
+  std::string hang_link_;
   std::shared_ptr<rclcpp::Subscription<std_msgs::msg::Bool>> elastic_band_enable_sub_;
   std::shared_ptr<rclcpp::Subscription<std_msgs::msg::Float64>> elastic_band_adjust_sub_;
 };

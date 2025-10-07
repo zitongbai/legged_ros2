@@ -15,7 +15,9 @@ namespace legged {
 
 void MujocoRos2Control::update(const rclcpp::Time &time, const rclcpp::Duration &period)
 {
-  if(elastic_band_.is_enabled()){
+  int id = mj_name2id(mj_model_, mjOBJ_BODY, hang_link_.c_str());
+
+  if(elastic_band_.is_enabled() && !hang_link_.empty() && id != -1){
     std::vector<double> pos(3);
     std::vector<double> vel(3);
     for(int i=0; i<3; ++i){
@@ -26,12 +28,14 @@ void MujocoRos2Control::update(const rclcpp::Time &time, const rclcpp::Duration 
     const auto & force = elastic_band_.force();
     // apply the force to the body
     for(int i=0; i<3; ++i){
-      mj_data_->qfrc_applied[i] = force[i];
+      // mj_data_->qfrc_applied[i] = force[i];
+      mj_data_->xfrc_applied[id*6 + i] = force[i]; // apply force at the center of mass
     }
   } else {
     // clear the applied force
     for(int i=0; i<3; ++i){
-      mj_data_->qfrc_applied[i] = 0.0;
+      // mj_data_->qfrc_applied[i] = 0.0;
+      mj_data_->xfrc_applied[id*6 + i] = 0.0;
     }
   }
 
