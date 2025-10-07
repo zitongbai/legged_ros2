@@ -37,6 +37,9 @@ class OrtRunner : public Algorithms {
  public:
     explicit OrtRunner(const std::string& model_path)
             : env_(ORT_LOGGING_LEVEL_WARNING, "onnx_model"), rnn_type_(RNNType::NONE) {
+        
+        std::cout << "Loading ONNX model from: " << model_path << std::endl;
+
         session_options_.SetGraphOptimizationLevel(ORT_ENABLE_EXTENDED);
         session_ = std::make_unique<Ort::Session>(env_, model_path.c_str(), session_options_);
 
@@ -68,6 +71,11 @@ class OrtRunner : public Algorithms {
         for (size_t i = 0; i < num_inputs_; ++i) {
             Ort::TypeInfo input_type = session_->GetInputTypeInfo(i);
             input_shapes_[i] = input_type.GetTensorTypeAndShapeInfo().GetShape();
+            std::cout << "Input " << i << " shape: ";
+            for (const auto& dim : input_shapes_[i]) {
+                std::cout << dim << " ";
+            }
+            std::cout << std::endl;
         }
         
         for (size_t i = 0; i < num_outputs_; ++i) {

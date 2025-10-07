@@ -62,6 +62,23 @@ REGISTER_OBSERVATION(velocity_commands)
     return obs;
 }
 
+REGISTER_OBSERVATION(sin_cos_phase)
+{
+    std::vector<float> obs(2);
+    float gait_period = 0.8f;
+    if(!env->cfg.has_extra("gait_period")) {
+        throw std::runtime_error("Observation term 'gait_phase' requires 'gait_period' in env cfg extras.");
+    } else {
+        gait_period = env->cfg.get_extra<double>("gait_period").value_or(0.8);
+    }
+
+    float phase = std::fmod(env->episode_length_s, gait_period) / gait_period;
+    obs[0] = std::sin(phase * 2 * M_PI);
+    obs[1] = std::cos(phase * 2 * M_PI);
+
+    return obs;
+}
+
 REGISTER_OBSERVATION(jump_phase)
 {
     std::vector<float> obs(1);

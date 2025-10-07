@@ -264,6 +264,10 @@ controller_interface::CallbackReturn LeggedRLController::configure_parameters_()
     static_cast<float>(params_.range_ang_vel_z[1])
   };
 
+  // -------------------------------------------
+  // Other configurations
+  // -------------------------------------------
+  env_cfg_.set_extra<double>("gait_period", params_.gait_period);
 
   RCLCPP_INFO(get_node()->get_logger(), "LeggedRLController parameters configured");
 

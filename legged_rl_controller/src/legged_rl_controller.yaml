@@ -19,6 +19,11 @@ legged_rl_controller:
     default_value: 1.0,
     description: (Only for jump motion) Duration of the jump in seconds.
   }
+  gait_period: {
+    type: double,
+    default_value: 0.8,
+    description: Gait period in seconds. Only used if gait_phase is included in observations.
+  }
   obs_names: {
     type: string_array,
     default_value: [],

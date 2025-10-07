@@ -67,6 +67,9 @@ protected:
 
             ObservationTermCfg term_cfg;
             term_cfg.history_length = cfg->history_length;
+            if(term_cfg.history_length < 1){
+                term_cfg.history_length = 1; // 0 history length means only use current observation
+            }
 
             if(observations_map()[name] == nullptr)
             {
