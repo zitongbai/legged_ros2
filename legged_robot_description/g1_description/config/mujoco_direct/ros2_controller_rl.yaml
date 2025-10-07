@@ -1,3 +1,7 @@
+mujoco_ros2_control_node:
+  ros__parameters:
+    hang_link: "torso_link"
+
 # ------------------------------------------------------------
 # The following configurations are for the ROS 2 controller
 # ------------------------------------------------------------
