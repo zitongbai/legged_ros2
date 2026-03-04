@@ -12,6 +12,7 @@
 #include "legged_rl_controller/legged_rl_controller.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <stdexcept>
 
 #include <yaml-cpp/yaml.h>
@@ -37,6 +38,7 @@ controller_interface::CallbackReturn LeggedRLController::on_init()
   onnx_model_path_ = auto_declare<std::string>("onnx_model_path", "");
   io_descriptors_path_ = auto_declare<std::string>("io_descriptors_path", "");
   auto_declare<std::string>("waypoints_topic", "/waypoints");
+  waypoint_first_xyz_norm_max_ = auto_declare<double>("waypoint_first_xyz_norm_max", 0.5);
 
   /*
   // Disabled: legacy cmd_vel command pipeline.
@@ -55,6 +57,8 @@ controller_interface::CallbackReturn LeggedRLController::on_configure(
   onnx_model_path_ = get_node()->get_parameter("onnx_model_path").as_string();
   io_descriptors_path_ = get_node()->get_parameter("io_descriptors_path").as_string();
   auto waypoints_topic = get_node()->get_parameter("waypoints_topic").as_string();
+  waypoint_first_xyz_norm_max_ =
+    get_node()->get_parameter("waypoint_first_xyz_norm_max").as_double();
 
   if (onnx_model_path_.empty()) {
     RCLCPP_ERROR(get_node()->get_logger(), "Parameter 'onnx_model_path' is empty.");
@@ -62,6 +66,13 @@ controller_interface::CallbackReturn LeggedRLController::on_configure(
   }
   if (io_descriptors_path_.empty()) {
     RCLCPP_ERROR(get_node()->get_logger(), "Parameter 'io_descriptors_path' is empty.");
+    return controller_interface::CallbackReturn::ERROR;
+  }
+  if (!std::isfinite(waypoint_first_xyz_norm_max_) || waypoint_first_xyz_norm_max_ <= 0.0) {
+    RCLCPP_ERROR(
+      get_node()->get_logger(),
+      "Parameter 'waypoint_first_xyz_norm_max' must be finite and > 0, got %.6f.",
+      waypoint_first_xyz_norm_max_);
     return controller_interface::CallbackReturn::ERROR;
   }
 
@@ -170,6 +181,28 @@ controller_interface::CallbackReturn LeggedRLController::on_configure(
   waypoints_sub_ = get_node()->create_subscription<geometry_msgs::msg::PoseArray>(
     waypoints_topic, rclcpp::SystemDefaultsQoS(),
     [this](const geometry_msgs::msg::PoseArray::SharedPtr msg) {
+      if (msg && !msg->poses.empty()) {
+        const auto & p0 = msg->poses.front().position;
+        const double first_norm = std::sqrt(p0.x * p0.x + p0.y * p0.y + p0.z * p0.z);
+        if (!std::isfinite(first_norm) || first_norm > waypoint_first_xyz_norm_max_) {
+          auto safe_msg = std::make_shared<geometry_msgs::msg::PoseArray>(*msg);
+          for (auto & pose : safe_msg->poses) {
+            pose.position.x = 0.0;
+            pose.position.y = 0.0;
+            pose.position.z = 0.0;
+          }
+          waypoints_buffer_->writeFromNonRT(safe_msg);
+          RCLCPP_ERROR_THROTTLE(
+            get_node()->get_logger(),
+            *get_node()->get_clock(),
+            1000,
+            "Waypoint guard triggered: first point xyz norm %.3f exceeds threshold %.3f. "
+            "All waypoints are zeroed.",
+            first_norm,
+            waypoint_first_xyz_norm_max_);
+          return;
+        }
+      }
       waypoints_buffer_->writeFromNonRT(msg);
     });
 
@@ -218,8 +251,9 @@ controller_interface::CallbackReturn LeggedRLController::on_configure(
 
   RCLCPP_INFO(
     get_node()->get_logger(),
-    "Legged RL Controller configured successfully. generated_commands dim=%zu, num_waypoints=%zu, waypoints_topic=%s",
-    generated_command_dim, num_waypoints, waypoints_topic.c_str());
+    "Legged RL Controller configured successfully. generated_commands dim=%zu, "
+    "num_waypoints=%zu, waypoints_topic=%s, waypoint_first_xyz_norm_max=%.3f",
+    generated_command_dim, num_waypoints, waypoints_topic.c_str(), waypoint_first_xyz_norm_max_);
   return controller_interface::CallbackReturn::SUCCESS;
 }
 

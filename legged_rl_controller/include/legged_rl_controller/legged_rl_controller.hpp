@@ -66,6 +66,7 @@ protected:
 
   std::string onnx_model_path_;
   std::string io_descriptors_path_;
+  double waypoint_first_xyz_norm_max_ = 0.5;
 
 };
 

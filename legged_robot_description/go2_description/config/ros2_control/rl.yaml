@@ -67,52 +67,52 @@ stand_static_controller:
     ]
     joint_cfg:
       FL_hip_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: 0.10000000149011612
       FR_hip_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: -0.10000000149011612
       RL_hip_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: 0.10000000149011612
       RR_hip_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: -0.10000000149011612
       FL_thigh_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: 0.800000011920929
       FR_thigh_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: 0.800000011920929
       RL_thigh_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: 1.0
       RR_thigh_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: 1.0
       FL_calf_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: -1.5
       FR_calf_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: -1.5
       RL_calf_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: -1.5
       RR_calf_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: -1.5
 
 
@@ -136,52 +136,52 @@ sit_static_controller:
     ]
     joint_cfg:
       FL_hip_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: 0.10000000149011612
       FR_hip_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: -0.10000000149011612
       RL_hip_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: 0.10000000149011612
       RR_hip_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: -0.10000000149011612
       FL_thigh_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: 1.30
       FR_thigh_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: 1.30
       RL_thigh_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: 1.30
       RR_thigh_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: 1.30
       FL_calf_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: -2.4
       FR_calf_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: -2.4
       RL_calf_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: -2.4
       RR_calf_joint:
-        kp: 25.0
-        kd: 0.5
+        kp: 35.0
+        kd: 1.0
         default_pos: -2.4
 
 rl_controller:
@@ -204,6 +204,7 @@ rl_controller:
     imu_names: # only use one imu for RL observation
       - imu # refer to ros2 control xacro file
     waypoints_topic: "/waypoints"
+    waypoint_first_xyz_norm_max: 0.5
     # Disabled: legacy cmd_vel command pipeline.
     cmd_vel_topic: "cmd_vel"
     cmd_vel_range_lin_vel_x: [-1.0, 1.0]  # m/s
