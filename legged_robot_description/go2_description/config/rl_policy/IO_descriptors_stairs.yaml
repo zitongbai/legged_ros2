@@ -212,7 +212,7 @@ observations:
       history_length: 0
       scale: null
     shape:
-    - 36
+    - 15
   - dtype: torch.float32
     extras:
       description: 'The joint positions of the asset w.r.t. the default joint positions.
