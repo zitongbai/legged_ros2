@@ -203,6 +203,8 @@ rl_controller:
     ]
     imu_names: # only use one imu for RL observation
       - imu # refer to ros2 control xacro file
+    waypoints_topic: "/waypoints"
+    # Disabled: legacy cmd_vel command pipeline.
     cmd_vel_topic: "cmd_vel"
     cmd_vel_range_lin_vel_x: [-1.0, 1.0]  # m/s
     cmd_vel_range_lin_vel_y: [-1.0, 1.0]  # m/s

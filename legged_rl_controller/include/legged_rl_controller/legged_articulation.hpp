@@ -11,9 +11,13 @@
 
 #pragma once
 
+#include <algorithm>
+#include <stdexcept>
+#include <string>
+
 #include "semantic_components/imu_sensor.hpp"
 #include "realtime_tools/realtime_buffer.hpp"
-#include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/pose_array.hpp"
 
 #include "legged_rl_controller/isaaclab/assets/articulation/articulation.h"
 #include "legged_ros2_controller/semantic_components/joint_interface.hpp"
@@ -21,20 +25,22 @@
 
 namespace legged{
 
-using TwistMsgSharedPtr = std::shared_ptr<geometry_msgs::msg::Twist>;
-using CmdBuffer = realtime_tools::RealtimeBuffer<TwistMsgSharedPtr>;
+using WaypointsMsgSharedPtr = std::shared_ptr<geometry_msgs::msg::PoseArray>;
+using WaypointsBuffer = realtime_tools::RealtimeBuffer<WaypointsMsgSharedPtr>;
 
 class LeggedArticulation : public isaaclab::Articulation
 {
 public:
   LeggedArticulation(std::shared_ptr<semantic_components::IMUSensor> imu_interface,
                      std::shared_ptr<JointInterface> joint_interface, 
-                     std::shared_ptr<CmdBuffer> cmd_vel_buffer)
-    : imu_interface_(std::move(imu_interface)), joint_interface_(std::move(joint_interface)), cmd_vel_buffer_(std::move(cmd_vel_buffer))
+                     std::shared_ptr<WaypointsBuffer> waypoints_buffer)
+    : imu_interface_(std::move(imu_interface)),
+      joint_interface_(std::move(joint_interface)),
+      waypoints_buffer_(std::move(waypoints_buffer))
   {}
 
   void update() override {
-    if (!joint_interface_ || !imu_interface_ || !cmd_vel_buffer_) {
+    if (!joint_interface_ || !imu_interface_ || !waypoints_buffer_) {
       return;
     }
     // update joint data
@@ -66,7 +72,34 @@ public:
     data.projected_gravity_b = q.conjugate() * data.GRAVITY_VEC_W;
     data.root_quat = q;
 
-    // Update Command
+    // Update waypoint command from PoseArray (flattened [x, y, z] * num_waypoints).
+    auto & waypoint_data = data.waypoint_command;
+    if (waypoint_data.path_command.size() != waypoint_data.generated_command_dim) {
+      waypoint_data.path_command.assign(waypoint_data.generated_command_dim, 0.0f);
+    }
+
+    WaypointsMsgSharedPtr waypoints_msg = *waypoints_buffer_->readFromRT();
+    if (waypoints_msg == nullptr) {
+      std::fill(waypoint_data.path_command.begin(), waypoint_data.path_command.end(), 0.0f);
+    } else {
+      const auto expected_waypoints = waypoint_data.num_waypoints;
+      if (waypoints_msg->poses.size() != expected_waypoints) {
+        throw std::runtime_error(
+          "Waypoint size mismatch: expected " + std::to_string(expected_waypoints) +
+          ", got " + std::to_string(waypoints_msg->poses.size()) + ".");
+      }
+
+      for (size_t i = 0; i < expected_waypoints; ++i) {
+        const auto & p = waypoints_msg->poses[i].position;
+        const size_t base = i * 3U;
+        waypoint_data.path_command[base + 0U] = static_cast<float>(p.x);
+        waypoint_data.path_command[base + 1U] = static_cast<float>(p.y);
+        waypoint_data.path_command[base + 2U] = static_cast<float>(p.z);
+      }
+    }
+
+    /*
+    // Disabled: legacy cmd_vel command pipeline.
     TwistMsgSharedPtr cmd_vel_msg = *cmd_vel_buffer_->readFromRT();
     if(cmd_vel_msg == nullptr){
       data.velocity_command.lin_vel_x = 0.0;
@@ -77,12 +110,13 @@ public:
       data.velocity_command.lin_vel_y = cmd_vel_msg->linear.y;
       data.velocity_command.ang_vel_z = cmd_vel_msg->angular.z;
     }
+    */
   }
 
 private:
   std::shared_ptr<semantic_components::IMUSensor> imu_interface_;
   std::shared_ptr<JointInterface> joint_interface_;
-  std::shared_ptr<CmdBuffer> cmd_vel_buffer_;
+  std::shared_ptr<WaypointsBuffer> waypoints_buffer_;
 };
 
 }

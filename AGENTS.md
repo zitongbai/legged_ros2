@@ -39,3 +39,8 @@ Run from the workspace root (e.g., `~/legged_ws`), not the package directory:
 - Sim2Sim/Sim2Real stability depends on joint order, MuJoCo joint `armature`,
   IMU mounting, and matching joint limits; review `README.md` and robot configs
   when updating models or policies.
+
+## Language Requirements
+- Always talk to the user in Simplified Chinese. 
+- Write code in English
+- Language used in documentation should ask the user to choose between English and Simplified Chinese, and then use the chosen language for the specified documentation.

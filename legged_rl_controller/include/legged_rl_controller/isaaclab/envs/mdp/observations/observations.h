@@ -100,6 +100,14 @@ REGISTER_OBSERVATION(last_action)
 REGISTER_OBSERVATION(generated_commands)
 {
     (void)params;  // Reserved for per-observation config.
+    return env->robot->data.waypoint_command.path_command;
+}
+
+/*
+// Disabled: legacy cmd_vel-based generated_commands implementation.
+REGISTER_OBSERVATION(generated_commands)
+{
+    (void)params;  // Reserved for per-observation config.
     std::vector<float> obs(3);
     auto & data = env->robot->data;
 
@@ -109,6 +117,7 @@ REGISTER_OBSERVATION(generated_commands)
 
     return obs;
 }
+*/
 
 
 }

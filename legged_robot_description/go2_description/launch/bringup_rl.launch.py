@@ -53,35 +53,21 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "onnx_model_path",
-            default_value=PathJoinSubstitution(
-                [
-                    FindPackageShare("go2_description"),
-                    "config",
-                    "rl_policy",
-                    "policy.onnx",
-                ]
-            ),
+            default_value="policy.onnx",
             description="Path to ONNX policy model for RL controller.",
         )
     )
     declared_arguments.append(
         DeclareLaunchArgument(
             "io_descriptors_path",
-            default_value=PathJoinSubstitution(
-                [
-                    FindPackageShare("go2_description"),
-                    "config",
-                    "rl_policy",
-                    "IO_descriptors.yaml",
-                ]
-            ),
+            default_value="IO_descriptors.yaml",
             description="Path to IO descriptors YAML for RL controller.",
         )
     )
     declared_arguments.append(
         DeclareLaunchArgument(
             "use_rviz",
-            default_value="false",
+            default_value="true",
             description="Start RViz2 automatically with this launch file.",
         )
     )
@@ -141,8 +127,22 @@ def generate_launch_description():
     )
 
     rl_controller_params = {
-        "onnx_model_path": onnx_model_path,
-        "io_descriptors_path": io_descriptors_path,
+        "onnx_model_path": PathJoinSubstitution(
+            [
+                FindPackageShare(description_package),
+                "config",
+                "rl_policy",
+                onnx_model_path,
+            ]
+        ),
+        "io_descriptors_path": PathJoinSubstitution(
+            [
+                FindPackageShare(description_package),
+                "config",
+                "rl_policy",
+                io_descriptors_path,
+            ]
+        ),
     }
 
     main_loop_node = Node(

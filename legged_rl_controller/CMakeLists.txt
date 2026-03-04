@@ -15,6 +15,7 @@ find_package(rclcpp_lifecycle REQUIRED)
 find_package(legged_ros2_control REQUIRED)
 find_package(realtime_tools REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(legged_ros2_controller REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(PkgConfig REQUIRED)
@@ -54,6 +55,7 @@ ament_target_dependencies(
   legged_ros2_control
   realtime_tools
   sensor_msgs
+  geometry_msgs
   legged_ros2_controller
 )
 

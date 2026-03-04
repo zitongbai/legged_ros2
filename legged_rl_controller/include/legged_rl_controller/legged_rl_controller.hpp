@@ -16,7 +16,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "realtime_tools/realtime_buffer.hpp"
-#include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/pose_array.hpp"
 
 #include "legged_ros2_controller/legged_ros2_controller.hpp"
 
@@ -47,11 +47,19 @@ public:
 
 protected:
 
+  rclcpp::Subscription<geometry_msgs::msg::PoseArray>::SharedPtr waypoints_sub_;
+  using WaypointsMsgSharedPtr = std::shared_ptr<geometry_msgs::msg::PoseArray>;
+  using WaypointsBuffer = realtime_tools::RealtimeBuffer<WaypointsMsgSharedPtr>;
+  std::shared_ptr<WaypointsBuffer> waypoints_buffer_;
+
+  /*
+  // Disabled: legacy cmd_vel command pipeline.
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_sub_;
   using TwistMsgSharedPtr = std::shared_ptr<geometry_msgs::msg::Twist>;
   using CmdBuffer = realtime_tools::RealtimeBuffer<TwistMsgSharedPtr>;
   std::shared_ptr<CmdBuffer> cmd_vel_buffer_;
   TwistMsgSharedPtr cmd_vel_msg_;
+  */
 
   std::unique_ptr<isaaclab::ManagerBasedRLEnv> env_;
   std::shared_ptr<isaaclab::Articulation> robot_;

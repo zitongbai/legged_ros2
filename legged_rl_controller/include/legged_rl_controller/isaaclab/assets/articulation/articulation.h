@@ -60,6 +60,13 @@ struct ArticulationData
         } range;
     } velocity_command;
 
+    // Waypoint command (flattened [x, y, z] * num_waypoints)
+    struct WaypointCommand{
+        size_t num_waypoints = 0U;
+        size_t generated_command_dim = 0U;
+        std::vector<float> path_command;
+    } waypoint_command;
+
 };
 
 class Articulation

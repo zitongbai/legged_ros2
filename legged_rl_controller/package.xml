@@ -17,6 +17,7 @@
   <depend>legged_ros2_control</depend>
   <depend>realtime_tools</depend>
   <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
   <depend>legged_ros2_controller</depend>
 
   <test_depend>ament_lint_auto</test_depend>
