@@ -1,0 +1,14 @@
+lidar_static_tf_node:
+  ros__parameters:
+    rotation_order: "extrinsic_xyz"
+    angle_unit: "deg"
+
+    odom_to_tracking_origin.parent_frame: "odom"
+    odom_to_tracking_origin.child_frame: "camera_init"
+    odom_to_tracking_origin.translation_xyz: [0.183746, -0.008833, 0.079768]
+    odom_to_tracking_origin.rotation_angles: [-2.059313, 12.900457, -0.424709]
+
+    tracking_body_to_base.parent_frame: "body"
+    tracking_body_to_base.child_frame: "base"
+    tracking_body_to_base.translation_xyz: [-0.16149302714430525, 0.003105261780729678, -0.11880196867915038]
+    tracking_body_to_base.rotation_angles: [2.0153836829205622, -12.907278063151713, -0.036128310417152414]
