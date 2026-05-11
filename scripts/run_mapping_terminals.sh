@@ -4,7 +4,8 @@ set -euo pipefail
 LIVOX_DELAY_SEC="${LIVOX_DELAY_SEC:-2}"
 FAST_LIO_DELAY_SEC="${FAST_LIO_DELAY_SEC:-2}"
 STATIC_TF_DELAY_SEC="${STATIC_TF_DELAY_SEC:-2}"
-WITH_RVIZ="${WITH_RVIZ:-1}"
+WITH_FAST_LIO_RVIZ="${WITH_FAST_LIO_RVIZ:-0}"
+WITH_BROADCASTERS_RVIZ="${WITH_BROADCASTERS_RVIZ:-0}"
 LOG_DIR="${LOG_DIR:-/tmp/run_mapping_terminals_logs}"
 TERMINAL_PIDS=()
 CLEANING_UP=0
@@ -16,8 +17,10 @@ Usage: $(basename "$0") [--no-rviz]
 Environment overrides:
   LIVOX_DELAY_SEC      Seconds to wait after starting Livox before FAST-LIO. Default: 2
   FAST_LIO_DELAY_SEC   Seconds to wait after starting FAST-LIO before static TF. Default: 2
-  STATIC_TF_DELAY_SEC  Seconds to wait after starting static TF before RViz. Default: 2
-  WITH_RVIZ            1 to start Terminal 4, 0 to skip it. Default: 1
+  STATIC_TF_DELAY_SEC  Seconds to wait after starting static TF before broadcasters. Default: 2
+  WITH_FAST_LIO_RVIZ   1 to start FAST-LIO RViz, 0 to skip it. Default: 0
+  WITH_BROADCASTERS_RVIZ
+                       1 to start Go2 broadcasters RViz, 0 to skip it. Default: 0
   LOG_DIR              Directory for per-terminal logs. Default: /tmp/run_mapping_terminals_logs
 EOF
 }
@@ -25,7 +28,8 @@ EOF
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --no-rviz)
-      WITH_RVIZ=0
+      WITH_FAST_LIO_RVIZ=0
+      WITH_BROADCASTERS_RVIZ=0
       shift
       ;;
     -h|--help)
@@ -109,6 +113,26 @@ EOF
   exit 1
 fi
 
+if [[ -z "${NET_IF:-}" ]]; then
+  cat >&2 <<EOF
+NET_IF is not set.
+
+Set it to the network interface connected to the robot/MID360 network before running this script.
+
+Example:
+  export NET_IF=enp8s0
+  /root/legged_ws/src/legged_ros2/scripts/run_mapping_terminals.sh
+
+Check available interfaces with:
+  ip addr
+EOF
+  exit 1
+fi
+
+echo "Using NET_IF=${NET_IF}"
+echo "WITH_FAST_LIO_RVIZ=${WITH_FAST_LIO_RVIZ}"
+echo "WITH_BROADCASTERS_RVIZ=${WITH_BROADCASTERS_RVIZ}"
+
 mkdir -p "${LOG_DIR}"
 
 if ! command -v xterm >/dev/null 2>&1; then
@@ -134,7 +158,7 @@ source /root/legged_ws/setup.sh
 export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
 source /root/livox_ws/install/setup.bash
 source /root/fast_lio_ws/install/setup.bash
-ros2 launch fast_lio mapping.launch.py config_file:=mid360.yaml
+ros2 launch fast_lio mapping.launch.py config_file:=mid360.yaml rviz:=${WITH_FAST_LIO_RVIZ}
 '
 
 STATIC_TF_CMD='
@@ -144,7 +168,7 @@ ros2 launch go2_description lidar_static_tf.launch.py
 
 RVIZ_CMD='
 source /root/legged_ws/setup.sh
-ros2 launch go2_description bringup_broadcasters.launch.py
+ros2 launch go2_description bringup_broadcasters.launch.py use_rviz:=${WITH_BROADCASTERS_RVIZ}
 '
 
 echo "Opening Terminal 1: Livox MID360 driver"
@@ -162,15 +186,11 @@ sleep "${FAST_LIO_DELAY_SEC}"
 echo "Opening Terminal 3: lidar static TF"
 open_terminal "mapping: lidar static TF" "${STATIC_TF_CMD}" "03_lidar_static_tf"
 
-if [[ "${WITH_RVIZ}" == "1" ]]; then
-  echo "Waiting ${STATIC_TF_DELAY_SEC}s before starting RViz/broadcasters"
-  sleep "${STATIC_TF_DELAY_SEC}"
+echo "Waiting ${STATIC_TF_DELAY_SEC}s before starting broadcasters"
+sleep "${STATIC_TF_DELAY_SEC}"
 
-  echo "Opening Terminal 4: broadcasters and RViz2"
-  open_terminal "mapping: broadcasters + RViz2" "${RVIZ_CMD}" "04_broadcasters_rviz2"
-else
-  echo "Skipping Terminal 4 because WITH_RVIZ=0"
-fi
+echo "Opening Terminal 4: broadcasters"
+open_terminal "mapping: broadcasters" "${RVIZ_CMD}" "04_broadcasters"
 
 echo "All mapping terminals are running. Press Ctrl-C here to close them."
 wait "${TERMINAL_PIDS[@]}" || true
