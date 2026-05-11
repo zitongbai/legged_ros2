@@ -24,6 +24,8 @@ docker_args=(
   -d
   --name "${CONTAINER_NAME}"
   --network host
+  -e "TERM=${TERM:-xterm-256color}"
+  -e "COLORTERM=${COLORTERM:-truecolor}"
   -v "${REPO_ROOT}:/root/legged_ws/src/legged_ros2"
 )
 
@@ -74,4 +76,8 @@ fi
 
 echo "Container is ready and workspace is initialized."
 echo "Opening an interactive shell in ${CONTAINER_NAME}"
-exec docker exec -it "${CONTAINER_NAME}" /bin/bash
+exec docker exec -it \
+  -e "TERM=${TERM:-xterm-256color}" \
+  -e "COLORTERM=${COLORTERM:-truecolor}" \
+  "${CONTAINER_NAME}" \
+  /bin/bash

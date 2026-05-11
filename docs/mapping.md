@@ -113,7 +113,7 @@ After mounting `legged_mapping/config/MID360_config.json`, `docker/run_mapping.s
 Open additional terminals in the same running container with:
 
 ```bash
-docker/exec_mapping.sh
+docker/enter_mapping.sh
 ```
 
 Before launching mapping nodes in the container, set `NET_IF` to the local network interface connected to the robot/MID360 network:

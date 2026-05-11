@@ -81,13 +81,13 @@ If a container with the same name already exists, `run.sh` removes it first and 
 
 ### Enter the running container
 
-Use `docker/exec.sh` when you want to open another terminal in the already running container:
+Use `docker/enter.sh` when you want to open another terminal in the already running container:
 
 ```bash
-docker/exec.sh
+docker/enter.sh
 ```
 
-`docker/exec.sh` does not create or initialize the container. It only runs `/bin/bash` inside the existing `legged-ros2-humble` container.
+`docker/enter.sh` does not create or initialize the container. It only runs `/bin/bash` inside the existing `legged-ros2-humble` container.
 
 Then choose one setup script based on your use case:
 

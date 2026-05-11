@@ -24,6 +24,8 @@ docker_args=(
   -d
   --name "${CONTAINER_NAME}"
   --network host
+  -e "TERM=${TERM:-xterm-256color}"
+  -e "COLORTERM=${COLORTERM:-truecolor}"
   -v "${REPO_ROOT}:/root/legged_ws/src/legged_ros2"
   -v "${REPO_ROOT}/legged_mapping/config/MID360_config.json:/root/livox_ws/src/livox_ros_driver2/config/MID360_config.json:ro"
 )
@@ -78,4 +80,8 @@ cd /root/livox_ws/src/livox_ros_driver2
 
 echo "Container is ready."
 echo "Opening an interactive shell in ${CONTAINER_NAME}"
-exec docker exec -it "${CONTAINER_NAME}" /bin/bash
+exec docker exec -it \
+  -e "TERM=${TERM:-xterm-256color}" \
+  -e "COLORTERM=${COLORTERM:-truecolor}" \
+  "${CONTAINER_NAME}" \
+  /bin/bash
