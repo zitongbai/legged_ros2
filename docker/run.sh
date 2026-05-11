@@ -20,11 +20,33 @@ if docker ps -a --format '{{.Names}}' | grep -Fxq "${CONTAINER_NAME}"; then
   docker rm -f "${CONTAINER_NAME}" >/dev/null
 fi
 
+docker_args=(
+  -d
+  --name "${CONTAINER_NAME}"
+  --network host
+  -v "${REPO_ROOT}:/root/legged_ws/src/legged_ros2"
+)
+
+if [[ -n "${DISPLAY:-}" ]]; then
+  if command -v xhost >/dev/null 2>&1; then
+    xhost +local:root >/dev/null || true
+  fi
+
+  docker_args+=(
+    -e "DISPLAY=${DISPLAY}"
+    -e "QT_X11_NO_MITSHM=1"
+    -v /tmp/.X11-unix:/tmp/.X11-unix:rw
+  )
+
+  if [[ -d /dev/dri ]]; then
+    docker_args+=(-v /dev/dri:/dev/dri)
+  fi
+else
+  echo "DISPLAY is not set on the host; GUI programs inside the container will not open windows." >&2
+fi
+
 echo "Starting container ${CONTAINER_NAME} from image ${IMAGE_NAME}"
-docker run -d \
-  --name "${CONTAINER_NAME}" \
-  --network host \
-  -v "${REPO_ROOT}:/root/legged_ws/src/legged_ros2" \
+docker run "${docker_args[@]}" \
   "${IMAGE_NAME}" \
   -lc "trap : TERM INT; sleep infinity & wait"
 
