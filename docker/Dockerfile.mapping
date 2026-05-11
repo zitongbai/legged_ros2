@@ -33,6 +33,7 @@ RUN set -exo pipefail \
         python3-colcon-common-extensions \
         python3-rosdep \
         wget \
+        xterm \
         ros-humble-ament-cmake \
         ros-humble-imu-tools \
         ros-humble-xacro \

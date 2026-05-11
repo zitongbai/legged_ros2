@@ -116,12 +116,27 @@ Open additional terminals in the same running container with:
 docker/exec_mapping.sh
 ```
 
+Before launching mapping nodes in the container, set `NET_IF` to the local network interface connected to the robot/MID360 network:
+
+```bash
+export NET_IF=<your-local-network-interface>
+```
+
+For example, if your PC connects to the robot through `enp3s0`:
+
+```bash
+export NET_IF=enp3s0
+```
+
+You can check the available host network interfaces with `ip addr`. Make sure to export `NET_IF` in the shell before running the mapping launch commands or the helper script.
+
 #### Launch Mapping
 
 You need 4 terminals to launch the mapping process:
 
 1. **Terminal 1**: Source and launch the `livox_ros_driver2` node to get data from MID360:
     ```bash
+    export NET_IF=<your-local-network-interface>
     source /root/legged_ws/setup.sh
     export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
     source /root/livox_ws/install/setup.bash
@@ -129,6 +144,7 @@ You need 4 terminals to launch the mapping process:
     ```
 2. **Terminal 2**: Source and launch the `FAST-LIO 2` node to perform SLAM:
     ```bash
+    export NET_IF=<your-local-network-interface>
     source /root/legged_ws/setup.sh
     export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
     source /root/livox_ws/install/setup.bash
@@ -137,14 +153,25 @@ You need 4 terminals to launch the mapping process:
     ```
 3. **Terminal 3**: Source and launch the configurable static TF node to bridge the external FAST-LIO frames to the robot base:
     ```bash
+    export NET_IF=<your-local-network-interface>
     source /root/legged_ws/setup.sh
-    ros2 launch legged_mapping lidar_static_tf.launch.py
+    ros2 launch go2_description lidar_static_tf.launch.py
     ```
 4. **Terminal 4**: (Optional) Broadcast the robot's TF tree and visualize robot in RViz2:
     ```bash
+    export NET_IF=<your-local-network-interface>
     source /root/legged_ws/setup.sh
     ros2 launch go2_description bringup_broadcasters.launch.py 
     ```
+
+If you use the helper script in `scripts/run_mapping_terminals.sh`, export `NET_IF` once before running it:
+
+```bash
+export NET_IF=<your-local-network-interface>
+bash /root/legged_ws/src/legged_ros2/scripts/run_mapping_terminals.sh
+```
+
+The helper script requires `xterm` in the container. It keeps the parent shell waiting after opening the mapping windows; press `Ctrl-C` in that parent shell to close all mapping `xterm` windows.
 
 #### Static TF configuration
 
