@@ -88,6 +88,6 @@ def print_ros2_control_config(urdf_path):
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description="Print ros2 control info from a URDF file.")
-  parser.add_argument("urdf_file", nargs='?', default="../urdf/g1_29dof_lock_waist_rev_1_0.urdf", help="Path to the URDF file")
+  parser.add_argument("urdf_file", nargs='?', default="../urdf/g1_29dof_rev_1_0.urdf", help="Path to the URDF file")
   args = parser.parse_args()
   print_ros2_control_config(args.urdf_file)
