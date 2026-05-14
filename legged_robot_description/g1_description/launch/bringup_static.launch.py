@@ -24,7 +24,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "description_file",
-            default_value="g1_29dof_lock_waist_rev_1_0.urdf.xacro",
+            default_value="g1_29dof_rev_1_0.urdf.xacro",
             description="URDF/XACRO description file with the robot.",
         )
     )
@@ -82,9 +82,6 @@ def generate_launch_description():
             PathJoinSubstitution(
                 [FindPackageShare(description_package), "urdf", description_file]
             ),
-            " ",
-            "enable_sim:=",
-            "false",
             " ",
             "enable_lowlevel_write:=",
             enable_lowlevel_write,
