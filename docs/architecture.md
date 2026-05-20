@@ -81,10 +81,12 @@ Role: **mapping and TF helper utilities**.
 
 Main nodes (current implementation):
 - `lidar_static_tf_node`: publishes two configurable static TF edges to complete the mapping chain around an external LIO source.
+- `ground_odom_tf_node`: computes a ground-aligned `odom -> initial_base` static TF from startup foot link positions, then publishes the calibrated LIO/base static edges.
 
 Default semantic chain:
-- `odom -> tracking_origin -> tracking_body -> base`
-- When used with vanilla FAST-LIO defaults, this becomes `odom -> camera_init -> body -> base`
+- Legacy static TF: `odom -> tracking_origin -> tracking_body -> base`
+- Ground odom static TF: `odom -> initial_base -> tracking_origin -> tracking_body -> base`
+- When used with vanilla FAST-LIO defaults, this becomes `odom -> initial_base -> camera_init -> body -> base`
 
 ## 4. Runtime Data and Control Flow (Go2 + RL Example)
 

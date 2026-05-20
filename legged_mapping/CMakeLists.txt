@@ -23,10 +23,22 @@ ament_target_dependencies(lidar_static_tf_node
   tf2_ros
 )
 
+add_executable(ground_odom_tf_node
+  src/ground_odom_tf.cpp
+)
+target_compile_features(ground_odom_tf_node PUBLIC cxx_std_17)
+ament_target_dependencies(ground_odom_tf_node
+  geometry_msgs
+  rclcpp
+  tf2
+  tf2_ros
+)
+
 ament_python_install_package(${PROJECT_NAME})
 
 install(TARGETS
   lidar_static_tf_node
+  ground_odom_tf_node
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -45,6 +57,7 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
   add_launch_test(test/test_lidar_static_tf.launch.py)
   add_launch_test(test/test_lidar_static_tf_nondefault.launch.py)
+  add_launch_test(test/test_ground_odom_tf.launch.py)
   add_test(
     NAME test_invert_homogeneous_transform
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/test_invert_homogeneous_transform.py

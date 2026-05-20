@@ -16,8 +16,8 @@ Usage: $(basename "$0") [--no-rviz]
 
 Environment overrides:
   LIVOX_DELAY_SEC      Seconds to wait after starting Livox before FAST-LIO. Default: 2
-  FAST_LIO_DELAY_SEC   Seconds to wait after starting FAST-LIO before static TF. Default: 2
-  STATIC_TF_DELAY_SEC  Seconds to wait after starting static TF before broadcasters. Default: 2
+  FAST_LIO_DELAY_SEC   Seconds to wait after starting FAST-LIO before broadcasters. Default: 2
+  STATIC_TF_DELAY_SEC  Seconds to wait after starting broadcasters before ground odom TF. Default: 2
   WITH_FAST_LIO_RVIZ   1 to start FAST-LIO RViz, 0 to skip it. Default: 0
   WITH_BROADCASTERS_RVIZ
                        1 to start Go2 broadcasters RViz, 0 to skip it. Default: 0
@@ -132,6 +132,8 @@ fi
 echo "Using NET_IF=${NET_IF}"
 echo "WITH_FAST_LIO_RVIZ=${WITH_FAST_LIO_RVIZ}"
 echo "WITH_BROADCASTERS_RVIZ=${WITH_BROADCASTERS_RVIZ}"
+export WITH_FAST_LIO_RVIZ
+export WITH_BROADCASTERS_RVIZ
 
 mkdir -p "${LOG_DIR}"
 
@@ -161,14 +163,14 @@ source /root/fast_lio_ws/install/setup.bash
 ros2 launch fast_lio mapping.launch.py config_file:=mid360.yaml rviz:=${WITH_FAST_LIO_RVIZ}
 '
 
-STATIC_TF_CMD='
-source /root/legged_ws/setup.sh
-ros2 launch go2_description lidar_static_tf.launch.py
-'
-
 RVIZ_CMD='
 source /root/legged_ws/setup.sh
 ros2 launch go2_description bringup_broadcasters.launch.py use_rviz:=${WITH_BROADCASTERS_RVIZ}
+'
+
+GROUND_ODOM_TF_CMD='
+source /root/legged_ws/setup.sh
+ros2 launch go2_description ground_odom_tf.launch.py
 '
 
 echo "Opening Terminal 1: Livox MID360 driver"
@@ -180,17 +182,17 @@ sleep "${LIVOX_DELAY_SEC}"
 echo "Opening Terminal 2: FAST-LIO 2"
 open_terminal "mapping: FAST-LIO 2" "${FAST_LIO_CMD}" "02_fast_lio"
 
-echo "Waiting ${FAST_LIO_DELAY_SEC}s before starting static TF"
+echo "Waiting ${FAST_LIO_DELAY_SEC}s before starting broadcasters"
 sleep "${FAST_LIO_DELAY_SEC}"
 
-echo "Opening Terminal 3: lidar static TF"
-open_terminal "mapping: lidar static TF" "${STATIC_TF_CMD}" "03_lidar_static_tf"
+echo "Opening Terminal 3: broadcasters"
+open_terminal "mapping: broadcasters" "${RVIZ_CMD}" "03_broadcasters"
 
-echo "Waiting ${STATIC_TF_DELAY_SEC}s before starting broadcasters"
+echo "Waiting ${STATIC_TF_DELAY_SEC}s before starting ground odom static TF"
 sleep "${STATIC_TF_DELAY_SEC}"
 
-echo "Opening Terminal 4: broadcasters"
-open_terminal "mapping: broadcasters" "${RVIZ_CMD}" "04_broadcasters"
+echo "Opening Terminal 4: ground odom static TF"
+open_terminal "mapping: ground odom static TF" "${GROUND_ODOM_TF_CMD}" "04_ground_odom_tf"
 
 echo "All mapping terminals are running. Press Ctrl-C here to close them."
 wait "${TERMINAL_PIDS[@]}" || true

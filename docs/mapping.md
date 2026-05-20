@@ -151,17 +151,17 @@ You need 4 terminals to launch the mapping process:
     source /root/fast_lio_ws/install/setup.bash
     ros2 launch fast_lio mapping.launch.py config_file:=mid360.yaml
     ```
-3. **Terminal 3**: Source and launch the configurable static TF node to bridge the external FAST-LIO frames to the robot base:
+3. **Terminal 3**: Broadcast the robot's TF tree:
     ```bash
     export NET_IF=<your-local-network-interface>
     source /root/legged_ws/setup.sh
-    ros2 launch go2_description lidar_static_tf.launch.py
+    ros2 launch go2_description bringup_broadcasters.launch.py
     ```
-4. **Terminal 4**: (Optional) Broadcast the robot's TF tree and visualize robot in RViz2:
+4. **Terminal 4**: Source and launch the ground odom static TF node to bridge the external FAST-LIO frames to the robot base:
     ```bash
     export NET_IF=<your-local-network-interface>
     source /root/legged_ws/setup.sh
-    ros2 launch go2_description bringup_broadcasters.launch.py 
+    ros2 launch go2_description ground_odom_tf.launch.py
     ```
 
 If you use the helper script in `scripts/run_mapping_terminals.sh`, export `NET_IF` once before running it:
@@ -174,6 +174,47 @@ bash /root/legged_ws/src/legged_ros2/scripts/run_mapping_terminals.sh
 The helper script requires `xterm` in the container. It keeps the parent shell waiting after opening the mapping windows; press `Ctrl-C` in that parent shell to close all mapping `xterm` windows.
 
 #### Static TF configuration
+
+`ground_odom_tf_node` publishes three static TF edges around the dynamic transform produced by your LIO stack:
+
+- Semantic target: `odom -> initial_base -> tracking_origin -> tracking_body -> base`
+- FAST-LIO default compatibility: `odom -> initial_base -> camera_init -> body -> base`
+
+The node waits for the configured foot link TFs in the initial `base` frame, fits a ground plane from those foot origins, and publishes `odom -> initial_base` so that:
+
+- `odom` origin is the foot-origin centroid shifted down along the fitted plane normal by `ground_odom.foot_radius`.
+- `odom` xy plane is aligned with the fitted foot plane.
+- `odom` yaw follows the initial `base` yaw by projecting the initial base x axis onto the fitted plane.
+
+The calibrated LiDAR transform is preserved as `initial_base_to_tracking_origin`. Its numeric values are the same calibration result that was previously stored under `odom_to_tracking_origin`; the rename only makes the old `odom` semantics explicit.
+
+The default parameters live in `legged_mapping/config/ground_odom_tf.yaml` and expose:
+
+- `rotation_order`
+- `angle_unit`
+- `ground_odom.parent_frame`
+- `ground_odom.child_frame`
+- `ground_odom.base_frame`
+- `ground_odom.foot_frames`
+- `ground_odom.foot_radius`
+- `ground_odom.tf_timeout_sec`
+- `initial_base_to_tracking_origin.parent_frame`
+- `initial_base_to_tracking_origin.child_frame`
+- `initial_base_to_tracking_origin.translation_xyz`
+- `initial_base_to_tracking_origin.rotation_angles`
+- `tracking_body_to_base.parent_frame`
+- `tracking_body_to_base.child_frame`
+- `tracking_body_to_base.translation_xyz`
+- `tracking_body_to_base.rotation_angles`
+
+Launch it with a custom parameter file when needed:
+
+```bash
+ros2 launch legged_mapping ground_odom_tf.launch.py \
+  params_file:=/absolute/path/to/your_ground_odom_tf.yaml
+```
+
+The older `lidar_static_tf_node` remains available for setups that want the original two-edge chain.
 
 `lidar_static_tf_node` publishes two static TF edges that surround the dynamic transform produced by your LIO stack:
 
