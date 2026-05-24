@@ -7,6 +7,7 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(hardware_interface REQUIRED)
@@ -46,6 +47,7 @@ set_target_properties(legged_rl_controller PROPERTIES
 )
 ament_target_dependencies(
   legged_rl_controller PUBLIC
+  ament_index_cpp
   rclcpp
   pluginlib
   hardware_interface

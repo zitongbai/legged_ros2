@@ -187,6 +187,8 @@ sit_static_controller:
 rl_controller:
   ros__parameters:
     update_rate: 50 # Hz
+    onnx_model_path: "package://go2_description/config/rl_policy/policy.onnx"
+    io_descriptors_path: "package://go2_description/config/rl_policy/IO_descriptors.yaml"
     joint_names: [
       'FL_hip_joint', 
       'FR_hip_joint', 
@@ -207,5 +209,3 @@ rl_controller:
     cmd_vel_range_lin_vel_x: [-1.0, 1.0]  # m/s
     cmd_vel_range_lin_vel_y: [-1.0, 1.0]  # m/s
     cmd_vel_range_ang_vel_z: [-3.14, 3.14]  # rad/s
-
-    

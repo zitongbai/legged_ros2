@@ -11,14 +11,61 @@
 
 #include "legged_rl_controller/legged_rl_controller.hpp"
 
+#include <filesystem>
 #include <limits>
 #include <stdexcept>
 
+#include <ament_index_cpp/get_package_share_directory.hpp>
 #include <yaml-cpp/yaml.h>
 
 #include "legged_rl_controller/isaaclab/algorithms/algorithms.h"
 #include "legged_rl_controller/isaaclab/envs/mdp/actions/joint_actions.h"
 #include "legged_rl_controller/isaaclab/envs/mdp/observations/observations.h"
+
+namespace
+{
+
+std::filesystem::path resolve_package_url(const std::string & raw_path)
+{
+  const std::string package_prefix = "package://";
+  if (raw_path.rfind(package_prefix, 0) != 0) {
+    throw std::runtime_error("Only package:// paths are supported: " + raw_path);
+  }
+
+  const auto package_path = raw_path.substr(package_prefix.size());
+  const auto slash_pos = package_path.find('/');
+  if (slash_pos == std::string::npos || slash_pos == 0 || slash_pos + 1 >= package_path.size()) {
+    throw std::runtime_error("Invalid package path: " + raw_path);
+  }
+
+  const auto package_name = package_path.substr(0, slash_pos);
+  const auto relative_path = package_path.substr(slash_pos + 1);
+
+  return std::filesystem::path(
+    ament_index_cpp::get_package_share_directory(package_name)) / relative_path;
+}
+
+std::string resolve_existing_file(
+  const std::string & raw_path, const std::string & parameter_name)
+{
+  if (raw_path.empty()) {
+    throw std::runtime_error("Parameter '" + parameter_name + "' is empty.");
+  }
+
+  const auto path = resolve_package_url(raw_path);
+  if (!std::filesystem::exists(path)) {
+    throw std::runtime_error(
+      "Parameter '" + parameter_name + "' file does not exist: " + path.string());
+  }
+  if (!std::filesystem::is_regular_file(path)) {
+    throw std::runtime_error(
+      "Parameter '" + parameter_name + "' is not a regular file: " + path.string());
+  }
+
+  return path.string();
+}
+
+}  // namespace
 
 namespace legged
 {
@@ -47,16 +94,15 @@ controller_interface::CallbackReturn LeggedRLController::on_init()
 controller_interface::CallbackReturn LeggedRLController::on_configure(
   const rclcpp_lifecycle::State & previous_state)
 {
-  onnx_model_path_ = get_node()->get_parameter("onnx_model_path").as_string();
-  io_descriptors_path_ = get_node()->get_parameter("io_descriptors_path").as_string();
   auto cmd_vel_topic = get_node()->get_parameter("cmd_vel_topic").as_string();
 
-  if (onnx_model_path_.empty()) {
-    RCLCPP_ERROR(get_node()->get_logger(), "Parameter 'onnx_model_path' is empty.");
-    return controller_interface::CallbackReturn::ERROR;
-  }
-  if (io_descriptors_path_.empty()) {
-    RCLCPP_ERROR(get_node()->get_logger(), "Parameter 'io_descriptors_path' is empty.");
+  try {
+    onnx_model_path_ = resolve_existing_file(
+      get_node()->get_parameter("onnx_model_path").as_string(), "onnx_model_path");
+    io_descriptors_path_ = resolve_existing_file(
+      get_node()->get_parameter("io_descriptors_path").as_string(), "io_descriptors_path");
+  } catch (const std::exception & e) {
+    RCLCPP_ERROR(get_node()->get_logger(), "%s", e.what());
     return controller_interface::CallbackReturn::ERROR;
   }
 

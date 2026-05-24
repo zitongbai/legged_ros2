@@ -52,34 +52,6 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument(
-            "onnx_model_path",
-            default_value=PathJoinSubstitution(
-                [
-                    FindPackageShare("go2_description"),
-                    "config",
-                    "rl_policy",
-                    "policy.onnx",
-                ]
-            ),
-            description="Path to ONNX policy model for RL controller.",
-        )
-    )
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            "io_descriptors_path",
-            default_value=PathJoinSubstitution(
-                [
-                    FindPackageShare("go2_description"),
-                    "config",
-                    "rl_policy",
-                    "IO_descriptors.yaml",
-                ]
-            ),
-            description="Path to IO descriptors YAML for RL controller.",
-        )
-    )
-    declared_arguments.append(
-        DeclareLaunchArgument(
             "use_rviz",
             default_value="false",
             description="Start RViz2 automatically with this launch file.",
@@ -99,8 +71,6 @@ def generate_launch_description():
     controller_config = LaunchConfiguration("controller_config")
     main_loop_config = LaunchConfiguration("main_loop_config")
     enable_lowlevel_write = LaunchConfiguration("enable_lowlevel_write")
-    onnx_model_path = LaunchConfiguration("onnx_model_path")
-    io_descriptors_path = LaunchConfiguration("io_descriptors_path")
     use_rviz = LaunchConfiguration("use_rviz")
     use_rqt_cm = LaunchConfiguration("use_rqt_cm")
 
@@ -140,11 +110,6 @@ def generate_launch_description():
         ]
     )
 
-    rl_controller_params = {
-        "onnx_model_path": onnx_model_path,
-        "io_descriptors_path": io_descriptors_path,
-    }
-
     main_loop_node = Node(
         package="legged_ros2_control",
         executable="go2_main_loop",
@@ -152,7 +117,6 @@ def generate_launch_description():
             controller_config_path,
             robot_description,
             main_loop_config_path,
-            rl_controller_params,
         ],
         remappings=[
             ("~/robot_description", "/robot_description"),
