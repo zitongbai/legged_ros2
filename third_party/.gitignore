@@ -1,3 +1,4 @@
 libtorch/
 onnxruntime-*/
 onnxruntime-*
+libmotioncapture/

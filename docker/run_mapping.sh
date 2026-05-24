@@ -9,11 +9,45 @@ CONTAINER_NAME="${CONTAINER_NAME:-legged-ros2-mapping-humble}"
 ONNX_VERSION="${ONNX_VERSION:-1.22.0}"
 ONNX_ARCHIVE="onnxruntime-linux-x64-${ONNX_VERSION}.tgz"
 ONNX_DIR="onnxruntime-linux-x64-${ONNX_VERSION}"
+LIBMOTIONCAPTURE_REPO="${LIBMOTIONCAPTURE_REPO:-https://github.com/NOKOV-MOCAP/libmotioncapture.git}"
+LIBMOTIONCAPTURE_REF="${LIBMOTIONCAPTURE_REF:-main}"
+
+prepare_third_party() {
+  for cmd in git wget tar; do
+    if ! command -v "${cmd}" >/dev/null 2>&1; then
+      echo "${cmd} is not installed or not in PATH" >&2
+      exit 1
+    fi
+  done
+
+  local third_party_dir="${REPO_ROOT}/third_party"
+  mkdir -p "${third_party_dir}"
+
+  if [[ ! -d "${third_party_dir}/${ONNX_DIR}" ]]; then
+    if [[ ! -f "${third_party_dir}/${ONNX_ARCHIVE}" ]]; then
+      wget -O "${third_party_dir}/${ONNX_ARCHIVE}" \
+        "https://github.com/microsoft/onnxruntime/releases/download/v${ONNX_VERSION}/${ONNX_ARCHIVE}"
+    fi
+    tar -xzf "${third_party_dir}/${ONNX_ARCHIVE}" -C "${third_party_dir}"
+  fi
+
+  if [[ ! -d "${third_party_dir}/libmotioncapture" ]]; then
+    git clone --branch "${LIBMOTIONCAPTURE_REF}" "${LIBMOTIONCAPTURE_REPO}" \
+      "${third_party_dir}/libmotioncapture"
+  fi
+
+  if [[ -d "${third_party_dir}/libmotioncapture/.git" ]]; then
+    git -C "${third_party_dir}/libmotioncapture" submodule update --init --recursive
+  fi
+}
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "docker is not installed or not in PATH" >&2
   exit 1
 fi
+
+echo "Preparing third-party dependencies on host"
+prepare_third_party
 
 if docker ps -a --format '{{.Names}}' | grep -Fxq "${CONTAINER_NAME}"; then
   echo "Removing existing container: ${CONTAINER_NAME}"
@@ -57,21 +91,11 @@ echo "Initializing legged workspace inside ${CONTAINER_NAME}"
 docker exec "${CONTAINER_NAME}" /bin/bash -lc "
 set -eo pipefail
 
-cd /root/legged_ws/src/legged_ros2/third_party
-if [[ ! -d \"${ONNX_DIR}\" ]]; then
-  if [[ ! -f \"${ONNX_ARCHIVE}\" ]]; then
-    wget \"https://github.com/microsoft/onnxruntime/releases/download/v${ONNX_VERSION}/${ONNX_ARCHIVE}\"
-  fi
-  tar -xzf \"${ONNX_ARCHIVE}\"
-fi
-
 source /root/unitree_ros2/setup_local.sh
 cd /root/legged_ws
 rosdep install --from-paths src --ignore-src -r -y
 
-if [[ ! -f /root/legged_ws/install/setup.bash ]]; then
-  colcon build --symlink-install
-fi
+colcon build --symlink-install
 
 source /opt/ros/humble/setup.bash
 cd /root/livox_ws/src/livox_ros_driver2
